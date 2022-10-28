@@ -1,0 +1,8 @@
+paths:
+    data_dir: "./data/"
+model:
+    class_name: GaussianNB
+training:
+    max_iter: 500
+evaluation:
+    method: cross_validate

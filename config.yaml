@@ -1,0 +1,6 @@
+paths:
+#    cache_dir: "/data/cache/"
+#    model_dir: "/data/cache/"
+
+    experiment_dir: "./experiments/"
+    data_dir: "./data/"
