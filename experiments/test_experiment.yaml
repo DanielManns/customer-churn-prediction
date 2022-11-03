@@ -4,8 +4,11 @@ paths:
     data_dir: "./data/"
 model:
     class_name: GaussianNB
+    #class_name: GaussianNB
 train:
     max_iter: 500
 eval:
+    #method: train_test_split
     method: cross_validate
+
 

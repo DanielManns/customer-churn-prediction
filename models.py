@@ -10,14 +10,20 @@ from sklearn.compose import make_column_selector as selector
 from sklearn import set_config
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import GaussianNB
-from sklearn.pipeline import make_pipeline
+from sklearn.pipeline import Pipeline
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split, cross_validate
 import yaml
 
-train_path = "./data/train.csv"
-target_name = "churn"
-
 pd.set_option('display.max_columns', 500)
+
+with open("config.yaml") as p:
+    config = yaml.safe_load(p)
+
+train_path = config["paths"]["train_path"]
+target_name = config["target_name"]
+im_vars = config["important_vars"]
+train_seed = config["seeds"]["train"]
 
 
 def clean_df(data):
@@ -61,7 +67,7 @@ def create_preprocessor(data):
     num_columns = numerical_selector(data)
     cat_columns = categorical_selector(data)
 
-    cat_trans = OneHotEncoder(handle_unknown="ignore")
+    cat_trans = OneHotEncoder(handle_unknown="ignore", sparse=False)
     num_trans = StandardScaler()
 
     preprocessor = ColumnTransformer([
@@ -81,12 +87,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    with open(args.experiment) as p:
-        config = yaml.safe_load(p)
-
-    classifier = eval(config["model"]["class_name"])
-    eval_method = eval(config["eval"]["method"])
-
     raw = pd.read_csv(train_path)
 
     data = clean_df(raw)
@@ -95,18 +95,33 @@ if __name__ == "__main__":
     target = data[target_name]
     data = data.drop(columns=[target_name])
 
-    pipeline = make_pipeline(create_preprocessor(data), classifier())
+    # subset important variables
+    data = data.loc[:, im_vars]
+
+    with open(args.experiment) as p:
+        exp_config = yaml.safe_load(p)
+
+    classifier = eval(exp_config["model"]["class_name"])
+    eval_method = eval(exp_config["eval"]["method"])
+
+    preprocessor = create_preprocessor(data)
+    classifier = classifier()
+
+    pipe = Pipeline(steps=[("preprocessor", preprocessor), ("classifier", classifier)])
 
     if eval_method.__name__ == "train_test_split":
-        data_train, data_test, target_train, target_test = eval_method(data, target, random_state=14)
-        _ = pipeline.fit(data_train, target_train)
-        acc = pipeline["classifier"].score(data_test, target_test)
-        print(f"The accuracy of {pipeline[1].__class__.__name__} is: {acc}")
+        X_train, X_test, y_train, y_test = eval_method(data, target, random_state=train_seed)
+
+        pipe.fit(X_train, y_train)
+        acc = pipe.score(X_test, y_test)
+        print(f"The {eval_method.__name__} score of {pipe['classifier'].__class__.__name__} is: {acc}")
 
     else:
-        cv_result = cross_validate(pipeline, data, target, cv=10)
+        X = preprocessor.fit_transform(data)
+
+        cv_result = cross_validate(pipe, data, target, cv=10)
         scores = cv_result["test_score"]
         print(
-            f"The mean cross-validation accuracy of {pipeline[1].__class__.__name__} is: "
+            f"The {eval_method.__name__} score of {pipe[1].__class__.__name__} is: "
             f"{scores.mean():.3f} ± {scores.std():.3f}"
         )

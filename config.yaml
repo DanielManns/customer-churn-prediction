@@ -1,6 +1,26 @@
-paths:
+dirs:
 #    cache_dir: "/data/cache/"
 #    model_dir: "/data/cache/"
 
     experiment_dir: "./experiments/"
     data_dir: "./data/"
+
+paths:
+    train_path: "./data/train.csv"
+
+target_name: "churn"
+
+important_vars: [
+    'state',
+    'international_plan',
+    'voice_mail_plan',
+    'number_vmail_messages',
+    'total_day_minutes',
+    'total_day_charge',
+    'number_customer_service_calls',
+    'total_minutes',
+    'total_charge'
+]
+
+seeds:
+    train: 14
