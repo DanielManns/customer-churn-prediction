@@ -1,13 +1,18 @@
 models:
-    #class_name: LogisticRegression
     class_names: [GaussianNB, LogisticRegression, DecisionTreeClassifier]
 train:
     max_iter: 500
-eval:
-    #method: train_test_split
+cross_validation:
     method: cross_validate
 drop_cols: [
 
   ]
+classifier_args:
+    GaussianNB:
+
+    LogisticRegression:
+        max_iter: 500
+    DecisionTreeClassifier:
+
 
 

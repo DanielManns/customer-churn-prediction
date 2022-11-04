@@ -1,5 +1,6 @@
 import pandas as pd
 import sklearn.base
+from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 
 from sklearn.linear_model import LogisticRegression
@@ -21,21 +22,27 @@ def create_pipeline(col_transformer: ColumnTransformer, classifier: sklearn.base
     return Pipeline(steps=[("col_transformer", col_transformer), ("classifier", classifier)])
 
 
-def train_pipeline(pipe: Pipeline, X_train: pd.DataFrame, y_train: pd.DataFrame) -> Pipeline:
+def train_pipeline(pipe: Pipeline, X: pd.DataFrame, y: pd.DataFrame, test_ratio=0.2) -> float:
     """
-    Trains a pipeline from given training data (X_train) and training labels (y_train).
+    Trains a pipeline from given training data and training labels using a classical train-test split method.
 
-    :param X_train: pd.DataFrame - training data
-    :param y_train: pd.DataFrame - training labels
     :param pipe: sklearn.pipeline Pipeline - Pipeline
+    :param X: pd.DataFrame - training data
+    :param y: pd.DataFrame - training labels
+    :param test_ratio: float - ratio of train set size / test set size
+
     :return: sklearn.pipeline Pipeline - Pipeline
     """
 
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_ratio)
+
     pipe.fit(X_train, y_train)
-    return pipe
+    acc = pipe.score(X_test, y_test)
+    print(f"The {train_test_split.__name__} score of {pipe['classifier'].__class__.__name__} is: {acc}")
+    return acc
 
 
-def cross_validate_pipeline( pipe: Pipeline, X: pd.DataFrame, y: pd.DataFrame, cv_method: sklearn.model_selection._validation, folds: int) -> float:
+def cv_train_pipeline(pipe: Pipeline, X: pd.DataFrame, y: pd.DataFrame, cv_method: sklearn.model_selection._validation, folds: int) -> float:
     """
     Applies cross validation to given pipeline, test_data and test_labels.
 

@@ -14,17 +14,9 @@ import yaml
 
 from feature_engineering import apply_feature_engineering
 from preprocessing import apply_preprocessing, create_col_transformer
-from training import create_pipeline, train_pipeline, cross_validate_pipeline
+from training import create_pipeline, train_pipeline, cv_train_pipeline
 
 pd.set_option('display.max_columns', 500)
-
-with open("config.yaml") as p:
-    config = yaml.safe_load(p)
-
-train_path = config["paths"]["train_path"]
-target_name = config["target_name"]
-im_vars = config["important_vars"]
-train_seed = config["seeds"]["train"]
 
 
 if __name__ == "__main__":
@@ -35,6 +27,14 @@ if __name__ == "__main__":
         help="Continue from checkpoint if set")
 
     args = parser.parse_args()
+
+    with open("config.yaml") as p:
+        config = yaml.safe_load(p)
+
+    train_path = config["paths"]["train_path"]
+    target_name = config["target_name"]
+    im_vars = config["important_vars"]
+    train_seed = config["seeds"]["train"]
 
     raw = pd.read_csv(train_path)
 
@@ -51,17 +51,10 @@ if __name__ == "__main__":
         exp_config = yaml.safe_load(p)
 
     classifiers = exp_config["models"]["class_names"]
-    eval_method = eval(exp_config["eval"]["method"])
-
+    cv_method = eval(exp_config["cross_validation"]["method"])
     col_transformer = create_col_transformer(df)
 
     for c in classifiers:
-        classifier = eval(c)()
-        cross_validate_pipeline(create_pipeline(col_transformer, classifier), df, target, eval_method, folds=10)
-
-        # if eval_method.__name__ == "train_test_split":
-        #     X_train, X_test, y_train, y_test = eval_method(df, target, random_state=train_seed)
-        #
-        #     pipe.fit(X_train, y_train)
-        #     acc = pipe.score(X_test, y_test)
-        #     print(f"The {eval_method.__name__} score of {pipe['classifier'].__class__.__name__} is: {acc}")
+        classifier_args = exp_config["classifier_args"][c]
+        classifier = eval(c)(**classifier_args) if classifier_args is not None else eval(c)()
+        cv_train_pipeline(create_pipeline(col_transformer, classifier), df, target, cv_method, folds=10)
