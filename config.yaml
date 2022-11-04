@@ -4,6 +4,7 @@ dirs:
 
     experiment_dir: "./experiments/"
     data_dir: "./data/"
+    model_dir: "./data/models"
 
 paths:
     train_path: "./data/train.csv"
@@ -15,8 +16,6 @@ important_vars: [
     'international_plan',
     'voice_mail_plan',
     'number_vmail_messages',
-    'total_day_minutes',
-    'total_day_charge',
     'number_customer_service_calls',
     'total_minutes',
     'total_charge'

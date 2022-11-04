@@ -1,14 +1,13 @@
-paths:
-#    cache_dir: "/data/cache/"
-#    model_dir: "/data/cache/"
-    data_dir: "./data/"
-model:
-    class_name: GaussianNB
-    #class_name: GaussianNB
+models:
+    #class_name: LogisticRegression
+    class_names: [GaussianNB, LogisticRegression, DecisionTreeClassifier]
 train:
     max_iter: 500
 eval:
     #method: train_test_split
     method: cross_validate
+drop_cols: [
+
+  ]
 
 
