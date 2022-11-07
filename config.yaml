@@ -1,31 +1,42 @@
 dirs:
-    experiment_dir: "./experiments/"
+    exp_dir: "./experiments/"
     data_dir: "./data/"
     model_dir: "./data/models"
+
 paths:
     train_path: "./data/train.csv"
-target_name: "churn"
-variables:
-    categorical:
 
-    continuous:
-    important:
-important_vars: [
-    'state',
-    'international_plan',
-    'voice_mail_plan',
-    'number_vmail_messages',
-    'number_customer_service_calls',
-    'total_minutes',
-    'total_charge'
-]
+target_name: "churn"
+
+important_vars:
+  [
+      'state',
+      'international_plan',
+      'voice_mail_plan',
+      'number_vmail_messages',
+      'number_customer_service_calls',
+      'total_reg_minutes',
+      'total_reg_charge'
+  ]
+
 possible_classifiers:
-    [
-        "GaussianNB", "LogisticRegression", "DecisionTreeClassifier"
-    ]
+  [
+      "CategoricalNB",
+      "GaussianNB",
+      "LogisticRegression",
+      "DecisionTreeClassifier"
+  ]
+
 random_classifiers:
-    [
-        "DecisionTreeClassifier"
-    ]
+  [
+      "DecisionTreeClassifier"
+  ]
+
 seeds:
     train: 14
+
+experiments:
+  [
+      "exp_no_subset.yaml",
+      "exp_subset.yaml"
+  ]

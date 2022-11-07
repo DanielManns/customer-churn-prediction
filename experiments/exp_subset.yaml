@@ -31,7 +31,7 @@ validation:
         cv: 10
 
 features:
-    is_subset: false
+    is_subset: true
 
 
 
