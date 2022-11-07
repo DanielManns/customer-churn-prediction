@@ -1,16 +1,34 @@
 classifiers:
-    class_names: ["GaussianNB", "LogisticRegression", "DecisionTreeClassifier"]
-classifier_params:
-    GaussianNB:
-        priors: null
+    ContinuousNaiveBayes:
+        class_name: "GaussianNB"
+        type: "continuous"
+        params:
+            priors: null
+
+#    CategoricalNaiveBayes:
+#        class_name: "CategoricalNB"
+#        type: "categorical"
+#        params:
+#            alpha: 1.0
+
     LogisticRegression:
-        max_iter: 500
-    DecisionTreeClassifier:
-        criterion: "gini"
-        splitter: "best"
-        max_depth: null
+        class_name: "LogisticRegression"
+        type: "mixed"
+        params:
+            max_iter: 500
+
+    DecisionTree:
+        class_name: "DecisionTreeClassifier"
+        type: "mixed"
+        params:
+            criterion: "gini"
+            splitter: "best"
+            max_depth: null
+
 validation:
     method: "cross_validate"
+    params:
+        cv: 10
 
 
 

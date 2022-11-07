@@ -5,7 +5,7 @@ from IPython.display import display, HTML
 
 from sklearn import set_config
 from sklearn.linear_model import LogisticRegression
-from sklearn.naive_bayes import GaussianNB
+from sklearn.naive_bayes import GaussianNB, CategoricalNB
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import accuracy_score
@@ -25,11 +25,11 @@ if __name__ == "__main__":
     arg("-c", "--classifiers", nargs="+", help="<Required> A minimum of 1 classifiers (sklearn class names)", required=False)
     arg("-p", "--classifier_params", nargs="+", help="<Required> A minimum of 1 classifier parameters", required=False)
     arg("-v", "--validation", type=str, default="cross_validate", help="Cross validation method (sklearn class name)")
-    arg("-s", "--subset", dest="is_subset", action="store_true",
-        help="Only use important features if set")
+    arg("-s", "--is_subset", action="store_true", help="Only use important features if set")
     arg("-e", "--exp_path", type=str, default="./experiments/test_experiment.yaml", help="Path to experiment configs")
 
     args = parser.parse_args()
+    print(args)
 
     with open("config.yaml") as p:
         config = yaml.safe_load(p)
@@ -49,19 +49,20 @@ if __name__ == "__main__":
     df = df.drop(columns=[target_name])
 
     # subset important variables
-    # data = data.loc[:, im_vars]
+    if args.is_subset:
+        df = df.loc[:, im_vars]
 
     with open(args.exp_path) as p:
         exp_config = yaml.safe_load(p)
 
-    classifiers = exp_config["classifiers"]["class_names"]
+    classifiers = exp_config["classifiers"]
     cv_method = eval(exp_config["validation"]["method"])
     col_transformer = create_col_transformer(df)
 
-    for c_name in classifiers:
-        classifier_args = exp_config["classifier_params"][c_name]
+    for _, c in classifiers.items():
+        c_params = c["params"]
         # append training seed if classifiers has random component
-        if c_name in random_cs:
-            classifier_args = {**classifier_args, **{"random_state": train_seed}}
-        classifier = eval(c_name)(**classifier_args) if classifier_args is not None else eval(c_name)()
+        if c["class_name"] in random_cs:
+            c_params = {**c_params, **{"random_state": train_seed}}
+        classifier = eval(c["class_name"])(**c_params) if c_params is not None else eval(c["class_name"])()
         cv_train_pipeline(create_pipeline(col_transformer, classifier), df, target, cv_method, folds=10)
