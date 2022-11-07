@@ -1,18 +1,18 @@
-models:
-    class_names: [GaussianNB, LogisticRegression, DecisionTreeClassifier]
-train:
-    max_iter: 500
-cross_validation:
-    method: cross_validate
-drop_cols: [
-
-  ]
-classifier_args:
+classifiers:
+    class_names: ["GaussianNB", "LogisticRegression", "DecisionTreeClassifier"]
+classifier_params:
     GaussianNB:
-
+        priors: null
     LogisticRegression:
         max_iter: 500
     DecisionTreeClassifier:
+        criterion: "gini"
+        splitter: "best"
+        max_depth: null
+validation:
+    method: "cross_validate"
+
+
 
 
 

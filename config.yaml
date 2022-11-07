@@ -1,16 +1,10 @@
 dirs:
-#    cache_dir: "/data/cache/"
-#    model_dir: "/data/cache/"
-
     experiment_dir: "./experiments/"
     data_dir: "./data/"
     model_dir: "./data/models"
-
 paths:
     train_path: "./data/train.csv"
-
 target_name: "churn"
-
 important_vars: [
     'state',
     'international_plan',
@@ -20,6 +14,13 @@ important_vars: [
     'total_minutes',
     'total_charge'
 ]
-
+possible_classifiers:
+    [
+        "GaussianNB", "LogisticRegression", "DecisionTreeClassifier"
+    ]
+random_classifiers:
+    [
+        "DecisionTreeClassifier"
+    ]
 seeds:
     train: 14

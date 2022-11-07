@@ -1,8 +1,0 @@
-paths:
-    data_dir: "./data/"
-model:
-    class_name: LogisticRegression
-train:
-    max_iter: 500
-eval:
-    method: cross_validate
