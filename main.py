@@ -13,9 +13,10 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split, cross_validate
 import yaml
 
+
 from feature_engineering import apply_feature_engineering
 from preprocessing import apply_preprocessing, create_col_transformer, get_cat_features, get_con_features
-from training import create_pipeline, train_pipeline, cv_train_pipeline
+from training import create_pipeline, train_pipeline, cv_train_pipeline, get_feature_importance
 
 pd.set_option('display.max_columns', 500)
 
@@ -48,14 +49,19 @@ def run_experiment(mixed_df: pd.DataFrame, exp_kwargs: dict) -> None:
             c_params = {**c_params, **{"random_state": train_seed}}
         classifier = eval(c["class_name"])(**c_params) if c_params is not None else eval(c["class_name"])()
         if c["type"] == "categorical":
-            df = cat_df
+            X = cat_df
         elif c["type"] == "continuous":
-            df = con_df
+            X = con_df
         else:
-            df = mixed_df
+            X = mixed_df
 
-        col_transformer = create_col_transformer(df)
-        cv_train_pipeline(create_pipeline(col_transformer, classifier), df, target, cv_method, folds=10)
+        col_transformer = create_col_transformer(X)
+        pipe = create_pipeline(col_transformer, classifier)
+        train_pipeline(pipe, X, y)
+        feature_names = pipe[:-1].get_feature_names_out()
+        cv_pipelines = cv_train_pipeline(pipe, X, y, cv_method, folds=10)
+        # get_feature_importance(pipe["classifier"], X, y)
+        print("\n")
 
 
 if __name__ == "__main__":
@@ -85,7 +91,7 @@ if __name__ == "__main__":
     mixed_df = apply_preprocessing(raw)
     mixed_df = apply_feature_engineering(mixed_df)
 
-    target = mixed_df[target_name]
+    y = mixed_df[target_name]
     mixed_df = mixed_df.drop(columns=[target_name])
 
     for exp_name in config["experiments"]:

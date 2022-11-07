@@ -7,6 +7,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import GaussianNB
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.inspection import permutation_importance
 from sklearn.compose import ColumnTransformer
 
 
@@ -22,7 +23,7 @@ def create_pipeline(col_transformer: ColumnTransformer, classifier: sklearn.base
     return Pipeline(steps=[("col_transformer", col_transformer), ("classifier", classifier)])
 
 
-def train_pipeline(pipe: Pipeline, X: pd.DataFrame, y: pd.DataFrame, test_ratio=0.2) -> float:
+def train_pipeline(pipe: Pipeline, X: pd.DataFrame, y: pd.DataFrame, test_ratio=0.2) -> sklearn.pipeline.Pipeline:
     """
     Trains a pipeline from given training data and training labels using a classical train-test split method.
 
@@ -37,9 +38,14 @@ def train_pipeline(pipe: Pipeline, X: pd.DataFrame, y: pd.DataFrame, test_ratio=
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_ratio)
 
     pipe.fit(X_train, y_train)
-    acc = pipe.score(X_test, y_test)
-    print(f"The {train_test_split.__name__} score of {pipe['classifier'].__class__.__name__} is: {acc}")
-    return acc
+    train_score = pipe.score(X_train, y_train)
+    test_score = pipe.score(X_test, y_test)
+    print(f"Train accuracy score of {pipe['classifier'].__class__.__name__}: {train_score}")
+    print(f"Test accuracy score of {pipe['classifier'].__class__.__name__}: {test_score}")
+
+    #print(get_feature_importance(pipe, X_test, y_test))
+
+    return pipe
 
 
 def cv_train_pipeline(pipe: Pipeline, X: pd.DataFrame, y: pd.DataFrame, cv_method: sklearn.model_selection._validation, folds: int) -> float:
@@ -53,15 +59,28 @@ def cv_train_pipeline(pipe: Pipeline, X: pd.DataFrame, y: pd.DataFrame, cv_metho
     :param folds: int - number of cross validation folds
     :return: float - mean cross validation score
     """
-    cv_result = cv_method(pipe, X, y, cv=folds)
+    cv_result = cv_method(pipe, X, y, cv=folds, return_estimator=True)
     scores = cv_result["test_score"]
+    pipelines = cv_result["estimator"]
     mean_score = scores.mean()
     print(
         f"The {cv_method.__name__} score of {pipe[1].__class__.__name__} is: "
         f"{mean_score:.3f} ± {scores.std():.3f}"
     )
 
-    return mean_score
+    return pipelines
+
+
+def get_feature_importance(pipe: sklearn.pipeline.Pipeline, X_test, y_test) -> dict:
+    if isinstance(pipe[:-1], sklearn.naive_bayes.BaseEstimator):
+        result = permutation_importance(pipe, X_test, y_test, n_repeats=10, random_state=12)
+        sorted_importances_idx = result.importances_mean.argsort()
+        importances = pd.DataFrame(
+            result.importances[sorted_importances_idx].T,
+            columns=X_test.columns[sorted_importances_idx],
+        )
+        print(importances.head())
+    return importances
 
 
 

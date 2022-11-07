@@ -39,13 +39,13 @@ def create_col_transformer(df: pd.DataFrame) -> ColumnTransformer:
     num_columns = numerical_selector(df)
     cat_columns = categorical_selector(df)
 
-    cat_trans = OneHotEncoder(handle_unknown="ignore", sparse=False)
+    cat_trans = OneHotEncoder(handle_unknown="ignore", drop="if_binary", sparse=False)
     num_trans = StandardScaler()
 
     col_transformer = ColumnTransformer([
         ("cat_trans", cat_trans, cat_columns),
         ("num_trans", num_trans, num_columns)
-    ])
+    ], verbose_feature_names_out=False)
 
     return col_transformer
 
