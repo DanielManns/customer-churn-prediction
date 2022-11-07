@@ -2,6 +2,7 @@ import pandas as pd
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.compose import ColumnTransformer
 from sklearn.compose import make_column_selector as selector
+import numpy as np
 
 
 def apply_preprocessing(df: pd.DataFrame) -> pd.DataFrame:
@@ -47,3 +48,26 @@ def create_col_transformer(df: pd.DataFrame) -> ColumnTransformer:
     ])
 
     return col_transformer
+
+
+def get_cat_features(df: pd.DataFrame) -> list:
+    """
+    Returns categorical variables of given DataFrame.
+
+    :param df: Pandas DataFrame - DataFrame
+    :return: String [] - List of categorical column names
+    """
+
+    return list(df.columns[df.dtypes == "category"])
+
+
+def get_con_features(df: pd.DataFrame) -> list:
+    """
+    Returns continuous variables of given DataFrame.
+
+    :param df: Pandas DataFrame - DataFrame
+    :return: String [] - List of continuous column names
+    """
+    return list(df.select_dtypes([np.number]).columns)
+
+

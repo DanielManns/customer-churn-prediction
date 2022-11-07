@@ -5,11 +5,11 @@ classifiers:
         params:
             priors: null
 
-#    CategoricalNaiveBayes:
-#        class_name: "CategoricalNB"
-#        type: "categorical"
-#        params:
-#            alpha: 1.0
+    CategoricalNaiveBayes:
+        class_name: "CategoricalNB"
+        type: "categorical"
+        params:
+            alpha: 1.0
 
     LogisticRegression:
         class_name: "LogisticRegression"

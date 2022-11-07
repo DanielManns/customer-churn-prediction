@@ -5,6 +5,11 @@ dirs:
 paths:
     train_path: "./data/train.csv"
 target_name: "churn"
+variables:
+    categorical:
+
+    continuous:
+    important:
 important_vars: [
     'state',
     'international_plan',
