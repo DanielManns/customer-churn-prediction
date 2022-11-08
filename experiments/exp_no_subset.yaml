@@ -25,10 +25,11 @@ classifiers:
             splitter: "best"
             max_depth: null
 
-validation:
-    method: "cross_validate"
+cross_validation:
+    class_name: "RepeatedKFold"
     params:
-        cv: 10
+        n_splits: 5
+        n_repeats: 5
 
 features:
     is_subset: false

@@ -38,5 +38,4 @@ seeds:
 experiments:
   [
       "exp_no_subset.yaml",
-      "exp_subset.yaml"
   ]

@@ -11,22 +11,28 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split, cross_validate
+from sklearn.model_selection import RepeatedKFold
 import yaml
-
+import warnings
 
 from feature_engineering import apply_feature_engineering
+from plotting import plot_feature_importance
 from preprocessing import apply_preprocessing, create_col_transformer, get_cat_features, get_con_features
-from training import create_pipeline, train_pipeline, cv_train_pipeline, get_feature_importance
+from training import create_pipeline, train_pipeline, cv_pipeline, get_feature_importance
 
 pd.set_option('display.max_columns', 500)
 
 
-def run_experiment(mixed_df: pd.DataFrame, exp_kwargs: dict) -> None:
+def warn(*args, **kwargs):
+    pass
+
+
+def run_experiment(mixed_df: pd.DataFrame, exp_config: dict) -> None:
     """
     Runs experiment with given experiment dict, already loaded from .yaml.
 
     :param mixed_df: Pandas DataFrame - Cleaned and enriched data (all features)
-    :param exp_kwargs: dict - experiment dictionary
+    :param exp_config: dict - experiment dictionary
     :return: None
     """
 
@@ -34,19 +40,20 @@ def run_experiment(mixed_df: pd.DataFrame, exp_kwargs: dict) -> None:
 
     # subset important variables
     if is_subset:
-        mixed_df = mixed_df.loc[:, im_vars]
+        mixed_df = mixed_df.loc[:, os.environ["IM_VARS"]]
 
     cat_df = mixed_df.drop(columns=get_con_features(mixed_df))
     con_df = mixed_df.drop(columns=get_cat_features(mixed_df))
 
     classifiers = exp_config["classifiers"]
-    cv_method = eval(exp_config["validation"]["method"])
+    cv_method = eval(exp_config["cross_validation"]["class_name"])
+    cv_method_kwargs = exp_config["cross_validation"]["params"]
 
     for _, c in classifiers.items():
         c_params = c["params"]
         # append training seed if classifiers has random component
-        if c["class_name"] in random_cs:
-            c_params = {**c_params, **{"random_state": train_seed}}
+        if c["class_name"] in ran_classifiers:
+            c_params = {**c_params, **{"random_state": os.environ["TRAIN_SEED"]}}
         classifier = eval(c["class_name"])(**c_params) if c_params is not None else eval(c["class_name"])()
         if c["type"] == "categorical":
             X = cat_df
@@ -58,9 +65,9 @@ def run_experiment(mixed_df: pd.DataFrame, exp_kwargs: dict) -> None:
         col_transformer = create_col_transformer(X)
         pipe = create_pipeline(col_transformer, classifier)
         train_pipeline(pipe, X, y)
-        feature_names = pipe[:-1].get_feature_names_out()
-        cv_pipelines = cv_train_pipeline(pipe, X, y, cv_method, folds=10)
-        # get_feature_importance(pipe["classifier"], X, y)
+        cv_pipelines = cv_pipeline(pipe, X, y, cv_method(**cv_method_kwargs))
+        if classifier.__class__.__name__ in ["DecisionTreeClassifier", "LogisticRegression"]:
+            plot_feature_importance(get_feature_importance(pipe))
         print("\n")
 
 
@@ -77,22 +84,27 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print(args)
 
+    # supress warnings
+    warnings.warn = warn
+
     with open("config.yaml") as p:
         config = yaml.safe_load(p)
 
-    train_path = config["paths"]["train_path"]
-    target_name = config["target_name"]
-    im_vars = config["important_vars"]
-    train_seed = config["seeds"]["train"]
-    random_cs = config["random_classifiers"]
+    os.environ["TRAIN_PATH"] = config["paths"]["train_path"]
+    os.environ["TARGET_NAME"] = config["target_name"]
 
-    raw = pd.read_csv(train_path)
+    os.environ["TRAIN_SEED"] = str(config["seeds"]["train"])
+
+    ran_classifiers = config["random_classifiers"]
+    im_vars = config["important_vars"]
+
+    raw = pd.read_csv(os.environ["TRAIN_PATH"])
 
     mixed_df = apply_preprocessing(raw)
     mixed_df = apply_feature_engineering(mixed_df)
 
-    y = mixed_df[target_name]
-    mixed_df = mixed_df.drop(columns=[target_name])
+    y = mixed_df[os.environ["TARGET_NAME"]]
+    mixed_df = mixed_df.drop(columns=[os.environ["TARGET_NAME"]])
 
     for exp_name in config["experiments"]:
         exp_path = os.path.join(config["dirs"]["exp_dir"], exp_name)
