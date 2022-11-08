@@ -1,0 +1,28 @@
+target_name: "churn"
+
+important_vars:
+  [
+      'state',
+      'international_plan',
+      'voice_mail_plan',
+      'number_vmail_messages',
+      'number_customer_service_calls',
+      'total_reg_minutes',
+      'total_reg_charge'
+  ]
+
+possible_classifiers:
+  [
+      "CategoricalNB",
+      "GaussianNB",
+      "LogisticRegression",
+      "DecisionTreeClassifier"
+  ]
+
+random_classifiers:
+  [
+      "DecisionTreeClassifier"
+  ]
+
+seeds:
+    train: 14

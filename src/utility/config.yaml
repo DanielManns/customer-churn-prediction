@@ -1,0 +1,12 @@
+dirs:
+    exp_dir: "./data/experiments/"
+    data_dir: "./data/"
+    model_dir: "./data/models/"
+
+paths:
+    train_path: "./data/train.csv"
+
+experiments:
+  [
+      "exp_no_subset.yaml",
+  ]

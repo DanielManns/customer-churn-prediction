@@ -1,24 +1,14 @@
-import numpy as np
 import pandas as pd
 import argparse
 import os
-from IPython.display import display, HTML
 
-from sklearn import set_config
-from sklearn.linear_model import LogisticRegression
-from sklearn.naive_bayes import GaussianNB, CategoricalNB
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.pipeline import Pipeline
-from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split, cross_validate
-from sklearn.model_selection import RepeatedKFold
 import yaml
 import warnings
 
-from feature_engineering import apply_feature_engineering
+from src.models.feature_engineering import apply_feature_engineering
 from plotting import plot_feature_importance
-from preprocessing import apply_preprocessing, create_col_transformer, get_cat_features, get_con_features
-from training import create_pipeline, train_pipeline, cv_pipeline, get_feature_importance
+from src.models.preprocessing import apply_preprocessing, create_col_transformer, get_cat_features, get_con_features
+from src.models.training import create_pipeline, train_pipeline, cv_pipeline, get_feature_importance
 
 pd.set_option('display.max_columns', 500)
 
@@ -87,6 +77,7 @@ if __name__ == "__main__":
     # supress warnings
     warnings.warn = warn
 
+    # TODO refactor this
     with open("../config.yaml") as p:
         config = yaml.safe_load(p)
 
