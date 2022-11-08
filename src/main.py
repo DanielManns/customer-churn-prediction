@@ -87,7 +87,7 @@ if __name__ == "__main__":
     # supress warnings
     warnings.warn = warn
 
-    with open("config.yaml") as p:
+    with open("../config.yaml") as p:
         config = yaml.safe_load(p)
 
     os.environ["TRAIN_PATH"] = config["paths"]["train_path"]
