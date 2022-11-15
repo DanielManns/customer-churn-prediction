@@ -1,17 +1,126 @@
 import pandas as pd
 import sklearn.base
+import yaml
 from sklearn.base import BaseEstimator
 from sklearn.model_selection import train_test_split, cross_validate
 from sklearn.pipeline import Pipeline
 
 from sklearn.linear_model import LogisticRegression
-from sklearn.naive_bayes import GaussianNB
+from sklearn.naive_bayes import GaussianNB, CategoricalNB
 from sklearn.naive_bayes import BaseEstimator as BaseEstimatorNB
 from sklearn.tree import DecisionTreeClassifier, BaseDecisionTree
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.inspection import permutation_importance
 from sklearn.compose import ColumnTransformer
 from sklearn.model_selection import RepeatedKFold, BaseCrossValidator
+
+from src.models.preprocessing import clean_df, enrich_df, get_con_features, get_cat_features, create_col_transformer, \
+    apply_preprocessing
+from config import config
+import os
+
+from src.plotting import plot_feature_importance
+
+c = config()
+
+
+def run_experiment_session(exp_names: list[str]) -> None:
+    """
+    Run multiple experiments from given list of experiment names.
+
+    :param exp_names: list[str] - experiment names
+    :return: None
+    """
+
+    for exp_name in exp_names:
+        run_experiment(exp_name)
+
+
+def run_experiment(exp_name: str) -> None:
+    """
+    Runs single experiment with given experiment name.
+
+    :param exp_name: str - experiment name
+    :return: None
+    """
+
+    exp_path = get_exp_path(exp_name)
+    print(f"\nRunning experiment located at {exp_path} ...")
+
+    exp_config = get_exp_config(exp_path)
+
+    raw_df = get_raw_data()
+    mixed_df = apply_preprocessing(raw_df)
+
+    y = mixed_df[c.m_config.target_name]
+    mixed_df = mixed_df.drop(columns=[c.m_config.target_name])
+
+    is_subset = exp_config["features"]["is_subset"]
+
+    # subset important variables
+    if is_subset:
+        mixed_df = mixed_df.loc[:, c.m_config.im_vars]
+
+    cat_df = mixed_df.drop(columns=get_con_features(mixed_df))
+    con_df = mixed_df.drop(columns=get_cat_features(mixed_df))
+
+    classifiers = exp_config["classifiers"]
+    cv_method = eval(exp_config["cross_validation"]["class_name"])
+    cv_method_kwargs = exp_config["cross_validation"]["params"]
+
+    for _, cl in classifiers.items():
+        c_params = cl["params"]
+        # append training seed if classifiers has random component
+        if cl["class_name"] in c.m_config.ran_classifiers:
+            c_params = {**c_params, **{"random_state": c.m_config.train_seed}}
+        classifier = eval(cl["class_name"])(**c_params) if c_params is not None else eval(cl["class_name"])()
+        if cl["type"] == "categorical":
+            X = cat_df
+        elif cl["type"] == "continuous":
+            X = con_df
+        else:
+            X = mixed_df
+
+        col_transformer = create_col_transformer(X)
+        pipe = create_pipeline(col_transformer, classifier)
+        train_pipeline(pipe, X, y)
+        cv_pipelines = cv_pipeline(pipe, X, y, cv_method(**cv_method_kwargs))
+        if classifier.__class__.__name__ in ["DecisionTreeClassifier", "LogisticRegression"]:
+            plot_feature_importance(get_feature_importance(pipe))
+        print("\n")
+
+
+def get_raw_data():
+    """
+    Returns raw DataFrame.
+
+    :return: pd.DataFrame - raw data
+    """
+
+    return pd.read_csv(c.u_config.train_path)
+
+
+def get_exp_path(exp_name):
+    """
+    Returns experiment path from given experiment name.
+
+    :param exp_name: str- experiment name
+    :return: str - experiment path
+    """
+
+    return os.path.join(c.u_config.exp_dir, exp_name)
+
+
+def get_exp_config(exp_path):
+    """
+    Returns experimental config from given experiment path.
+
+    :param exp_path: str - experiment path
+    :return: dict - experiment config
+    """
+
+    with open(exp_path) as p:
+        return yaml.safe_load(p)
 
 
 def create_pipeline(col_transformer: ColumnTransformer, classifier: BaseEstimator) -> Pipeline:
