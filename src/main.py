@@ -10,7 +10,11 @@ from src.models.feature_engineering import apply_feature_engineering
 from plotting import plot_feature_importance
 from src.models.preprocessing import apply_preprocessing, create_col_transformer, get_cat_features, get_con_features
 from src.models.training import create_pipeline, train_pipeline, cv_pipeline, get_feature_importance
-import sklearn
+
+from sklearn.naive_bayes import GaussianNB, CategoricalNB
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import RepeatedKFold
 
 pd.set_option('display.max_columns', 500)
 
@@ -45,7 +49,7 @@ def run_experiment(mixed_df: pd.DataFrame, exp_config: dict) -> None:
         c_params = c["params"]
         # append training seed if classifiers has random component
         if c["class_name"] in ran_classifiers:
-            c_params = {**c_params, **{"random_state": os.environ["TRAIN_SEED"]}}
+            c_params = {**c_params, **{"random_state": config.m_config.train_seed}}
         classifier = eval(c["class_name"])(**c_params) if c_params is not None else eval(c["class_name"])()
         if c["type"] == "categorical":
             X = cat_df

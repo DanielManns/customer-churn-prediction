@@ -1,24 +1,24 @@
 classifiers:
     ContinuousNaiveBayes:
-        class_name: "sklearn.naive_bayes.GaussianNB"
+        class_name: "GaussianNB"
         type: "continuous"
         params:
             priors: null
 
     CategoricalNaiveBayes:
-        class_name: "sklearn.naive_bayes.CategoricalNB"
+        class_name: "CategoricalNB"
         type: "categorical"
         params:
             alpha: 1.0
 
     LogisticRegression:
-        class_name: "sklearn.linear_model.LogisticRegression"
+        class_name: "LogisticRegression"
         type: "mixed"
         params:
             max_iter: 500
 
     DecisionTree:
-        class_name: "sklearn.tree.DecisionTreeClassifier"
+        class_name: "DecisionTreeClassifier"
         type: "mixed"
         params:
             criterion: "gini"
@@ -26,7 +26,7 @@ classifiers:
             max_depth: null
 
 cross_validation:
-    class_name: "sklearn.model_selection.RepeatedKFold"
+    class_name: "RepeatedKFold"
     params:
         n_splits: 5
         n_repeats: 5
