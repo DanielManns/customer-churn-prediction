@@ -1,6 +1,6 @@
 target_name: "churn"
 
-important_vars:
+im_vars:
   [
       'state',
       'international_plan',
@@ -11,7 +11,7 @@ important_vars:
       'total_reg_charge'
   ]
 
-possible_classifiers:
+classifiers:
   [
       "CategoricalNB",
       "GaussianNB",
@@ -19,10 +19,9 @@ possible_classifiers:
       "DecisionTreeClassifier"
   ]
 
-random_classifiers:
+ran_classifiers:
   [
       "DecisionTreeClassifier"
   ]
 
-seeds:
-    train: 14
+train_seed: 14

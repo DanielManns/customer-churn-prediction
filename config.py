@@ -1,10 +1,13 @@
+import src
 from dataclasses import dataclass
-
-import src.models.config
+import src.models.config as m_config
+import src.utility.config as u_config
 
 
 @dataclass
 class Configuration:
-    version: 1
-    utility: src.utility.config.Configuration
-    models: src.models.config.Configuration
+    m_config: src.models.config.Configuration
+    u_config: src.utility.config.Configuration
+
+
+config = Configuration(m_config=m_config.config, u_config=u_config.config)
