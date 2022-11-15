@@ -1,7 +1,7 @@
-exp_dir: "./data/experiments/"
-data_dir: "./data/"
-model_dir: "./data/models/"
-train_path: "./data/train.csv"
+exp_dir: "../data/experiments/"
+data_dir: "../data/"
+model_dir: "../data/models/"
+train_path: "../data/train.csv"
 
 experiments:
   [

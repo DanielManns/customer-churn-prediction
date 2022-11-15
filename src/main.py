@@ -4,11 +4,13 @@ import os
 
 import yaml
 import warnings
+import config as c
 
 from src.models.feature_engineering import apply_feature_engineering
 from plotting import plot_feature_importance
 from src.models.preprocessing import apply_preprocessing, create_col_transformer, get_cat_features, get_con_features
 from src.models.training import create_pipeline, train_pipeline, cv_pipeline, get_feature_importance
+import sklearn
 
 pd.set_option('display.max_columns', 500)
 
@@ -77,28 +79,22 @@ if __name__ == "__main__":
     # supress warnings
     warnings.warn = warn
 
-    # TODO refactor this
-    with open("../config.yaml") as p:
-        config = yaml.safe_load(p)
+    config = c.config
 
-    os.environ["TRAIN_PATH"] = config["paths"]["train_path"]
-    os.environ["TARGET_NAME"] = config["target_name"]
+    ran_classifiers = config.m_config.ran_classifiers
+    im_vars = config.m_config.im_vars
+    target_name = config.m_config.target_name
 
-    os.environ["TRAIN_SEED"] = str(config["seeds"]["train"])
-
-    ran_classifiers = config["random_classifiers"]
-    im_vars = config["important_vars"]
-
-    raw = pd.read_csv(os.environ["TRAIN_PATH"])
+    raw = pd.read_csv(config.u_config.train_path)
 
     mixed_df = apply_preprocessing(raw)
     mixed_df = apply_feature_engineering(mixed_df)
 
-    y = mixed_df[os.environ["TARGET_NAME"]]
-    mixed_df = mixed_df.drop(columns=[os.environ["TARGET_NAME"]])
+    y = mixed_df[target_name]
+    mixed_df = mixed_df.drop(columns=[target_name])
 
-    for exp_name in config["experiments"]:
-        exp_path = os.path.join(config["dirs"]["exp_dir"], exp_name)
+    for exp_name in config.u_config.experiments:
+        exp_path = os.path.join(config.u_config.exp_dir, exp_name)
         print(f"\nRunning experiment located at {exp_path} ...")
         with open(exp_path) as p:
             exp_config = yaml.safe_load(p)
