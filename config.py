@@ -1,7 +1,7 @@
 import src
 from dataclasses import dataclass
-import src.models.config as m_config
-import src.utility.config as u_config
+from src.models.config import config as m_config
+from src.utility.config import config as u_config
 
 
 @dataclass
@@ -10,4 +10,5 @@ class Configuration:
     u_config: src.utility.config.Configuration
 
 
-config = Configuration(m_config=m_config.config, u_config=u_config.config)
+def config():
+    return Configuration(m_config=m_config(), u_config=u_config())

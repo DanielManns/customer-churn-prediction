@@ -1,10 +1,11 @@
 import pandas as pd
 import argparse
 import os
+from src.utility.argument_parser import parse
 
 import yaml
 import warnings
-import config as c
+from config import config
 
 from src.models.feature_engineering import apply_feature_engineering
 from plotting import plot_feature_importance
@@ -17,6 +18,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import RepeatedKFold
 
 pd.set_option('display.max_columns', 500)
+c = config()
 
 
 def warn(*args, **kwargs):
@@ -45,15 +47,15 @@ def run_experiment(mixed_df: pd.DataFrame, exp_config: dict) -> None:
     cv_method = eval(exp_config["cross_validation"]["class_name"])
     cv_method_kwargs = exp_config["cross_validation"]["params"]
 
-    for _, c in classifiers.items():
-        c_params = c["params"]
+    for _, cl in classifiers.items():
+        c_params = cl["params"]
         # append training seed if classifiers has random component
-        if c["class_name"] in ran_classifiers:
-            c_params = {**c_params, **{"random_state": config.m_config.train_seed}}
-        classifier = eval(c["class_name"])(**c_params) if c_params is not None else eval(c["class_name"])()
-        if c["type"] == "categorical":
+        if cl["class_name"] in c.m_config.ran_classifiers:
+            c_params = {**c_params, **{"random_state": c.m_config.train_seed}}
+        classifier = eval(cl["class_name"])(**c_params) if c_params is not None else eval(cl["class_name"])()
+        if cl["type"] == "categorical":
             X = cat_df
-        elif c["type"] == "continuous":
+        elif cl["type"] == "continuous":
             X = con_df
         else:
             X = mixed_df
@@ -68,37 +70,22 @@ def run_experiment(mixed_df: pd.DataFrame, exp_config: dict) -> None:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Predict whether telecommunication customers churned')
-    arg = parser.add_argument
-    arg("-c", "--classifiers", nargs="+", help="<Required> A minimum of 1 classifiers (sklearn class names)",
-        required=False)
-    arg("-p", "--classifier_params", nargs="+", help="<Required> A minimum of 1 classifier parameters", required=False)
-    arg("-v", "--validation", type=str, default="cross_validate", help="Cross validation method (sklearn class name)")
-    # arg("-s", "--is_subset", action="store_true", help="Only use important features if set")
-    arg("-e", "--exp_name", type=str, default="test_experiment.yaml", help="Path to experiment configs")
-
-    args = parser.parse_args()
+    args = parse()
     print(args)
 
     # supress warnings
     warnings.warn = warn
 
-    config = c.config
-
-    ran_classifiers = config.m_config.ran_classifiers
-    im_vars = config.m_config.im_vars
-    target_name = config.m_config.target_name
-
-    raw = pd.read_csv(config.u_config.train_path)
+    raw = pd.read_csv(c.u_config.train_path)
 
     mixed_df = apply_preprocessing(raw)
     mixed_df = apply_feature_engineering(mixed_df)
 
-    y = mixed_df[target_name]
-    mixed_df = mixed_df.drop(columns=[target_name])
+    y = mixed_df[c.m_config.target_name]
+    mixed_df = mixed_df.drop(columns=[c.m_config.target_name])
 
-    for exp_name in config.u_config.experiments:
-        exp_path = os.path.join(config.u_config.exp_dir, exp_name)
+    for exp_name in c.u_config.experiments:
+        exp_path = os.path.join(c.u_config.exp_dir, exp_name)
         print(f"\nRunning experiment located at {exp_path} ...")
         with open(exp_path) as p:
             exp_config = yaml.safe_load(p)

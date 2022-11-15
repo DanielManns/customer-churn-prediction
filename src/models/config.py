@@ -13,7 +13,8 @@ class Configuration:
     train_seed: int
 
 
-with open(os.path.join(os.path.dirname(__file__), "config.yaml")) as p:
-    data = safe_load(p)
+def config():
+    with open(os.path.join(os.path.dirname(__file__), "config.yaml")) as p:
+        data = safe_load(p)
 
-config = from_dict(data_class=Configuration, data=data)
+    return from_dict(data_class=Configuration, data=data)

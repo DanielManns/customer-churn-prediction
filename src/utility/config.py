@@ -14,11 +14,12 @@ class Configuration:
     experiments: list[str]
 
 
-with open(os.path.join(os.path.dirname(__file__), "config.yaml")) as p:
-    data = safe_load(p)
+def config():
+    with open(os.path.join(os.path.dirname(__file__), "config.yaml")) as p:
+        data = safe_load(p)
 
-converters = {
-    Path: Path
-}
+    converters = {
+        Path: Path
+    }
 
-config = from_dict(data_class=Configuration, data=data, config=Config(type_hooks=converters))
+    return from_dict(data_class=Configuration, data=data, config=Config(type_hooks=converters))
