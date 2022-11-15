@@ -4,18 +4,16 @@ from sklearn.base import BaseEstimator
 from sklearn.model_selection import train_test_split, cross_validate
 from sklearn.pipeline import Pipeline
 
+from sklearn.naive_bayes import GaussianNB, CategoricalNB
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import BaseDecisionTree, DecisionTreeClassifier
-from sklearn import tree
-from sklearn.naive_bayes import GaussianNB, CategoricalNB
 from sklearn.inspection import permutation_importance
 from sklearn.compose import ColumnTransformer
 from sklearn.model_selection import BaseCrossValidator, RepeatedKFold
 
-
 from src.models.preprocessing import get_con_features, get_cat_features, create_col_transformer, \
     apply_preprocessing
-from config import config
+from src.config import config
 import os
 
 from src.utility.plotting import plot_feature_importance, plot_DT

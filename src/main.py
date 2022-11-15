@@ -2,7 +2,7 @@ import pandas as pd
 from src.utility.argument_parser import parse
 
 import warnings
-from config import config
+from src.config import config
 
 from src.models.training import run_experiment_session
 
@@ -19,6 +19,7 @@ def start_training():
 
 # TODO: Implement save utility for models and results folder
 # TODO: Implement Logger
+# TODO: Implement DT pruning
 if __name__ == "__main__":
     args = parse()
     print(args)
