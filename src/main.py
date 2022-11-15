@@ -17,7 +17,8 @@ def warn(*args, **kwargs):
 def start_training():
     run_experiment_session(c.u_config.experiments)
 
-
+# TODO: Implement save utility for models and results folder
+# TODO: Implement Logger
 if __name__ == "__main__":
     args = parse()
     print(args)

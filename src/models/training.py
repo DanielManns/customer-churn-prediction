@@ -1,25 +1,24 @@
 import pandas as pd
-import sklearn.base
 import yaml
 from sklearn.base import BaseEstimator
 from sklearn.model_selection import train_test_split, cross_validate
 from sklearn.pipeline import Pipeline
 
 from sklearn.linear_model import LogisticRegression
+from sklearn.tree import BaseDecisionTree, DecisionTreeClassifier
+from sklearn import tree
 from sklearn.naive_bayes import GaussianNB, CategoricalNB
-from sklearn.naive_bayes import BaseEstimator as BaseEstimatorNB
-from sklearn.tree import DecisionTreeClassifier, BaseDecisionTree
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.inspection import permutation_importance
 from sklearn.compose import ColumnTransformer
-from sklearn.model_selection import RepeatedKFold, BaseCrossValidator
+from sklearn.model_selection import BaseCrossValidator, RepeatedKFold
 
-from src.models.preprocessing import clean_df, enrich_df, get_con_features, get_cat_features, create_col_transformer, \
+
+from src.models.preprocessing import get_con_features, get_cat_features, create_col_transformer, \
     apply_preprocessing
 from config import config
 import os
 
-from src.plotting import plot_feature_importance
+from src.utility.plotting import plot_feature_importance, plot_DT
 
 c = config()
 
@@ -86,41 +85,10 @@ def run_experiment(exp_name: str) -> None:
         train_pipeline(pipe, X, y)
         cv_pipelines = cv_pipeline(pipe, X, y, cv_method(**cv_method_kwargs))
         if classifier.__class__.__name__ in ["DecisionTreeClassifier", "LogisticRegression"]:
-            plot_feature_importance(get_feature_importance(pipe))
+            plot_feature_importance(get_feature_importance(pipe), classifier.__class__.__name__)
+            if isinstance(classifier, DecisionTreeClassifier):
+                plot_DT(classifier, feature_names=pipe[:-1].get_feature_names_out())
         print("\n")
-
-
-def get_raw_data():
-    """
-    Returns raw DataFrame.
-
-    :return: pd.DataFrame - raw data
-    """
-
-    return pd.read_csv(c.u_config.train_path)
-
-
-def get_exp_path(exp_name):
-    """
-    Returns experiment path from given experiment name.
-
-    :param exp_name: str- experiment name
-    :return: str - experiment path
-    """
-
-    return os.path.join(c.u_config.exp_dir, exp_name)
-
-
-def get_exp_config(exp_path):
-    """
-    Returns experimental config from given experiment path.
-
-    :param exp_path: str - experiment path
-    :return: dict - experiment config
-    """
-
-    with open(exp_path) as p:
-        return yaml.safe_load(p)
 
 
 def create_pipeline(col_transformer: ColumnTransformer, classifier: BaseEstimator) -> Pipeline:
@@ -154,8 +122,6 @@ def train_pipeline(pipe: Pipeline, X: pd.DataFrame, y: pd.DataFrame, test_ratio=
     test_score = pipe.score(X_test, y_test)
     print(f"Train accuracy score of {pipe['classifier'].__class__.__name__}: {train_score}")
     print(f"Test accuracy score of {pipe['classifier'].__class__.__name__}: {test_score}")
-
-    # print(get_feature_importance(pipe, X_test, y_test))
 
     return pipe
 
@@ -268,6 +234,38 @@ def get_permutation_importance(pipe: Pipeline, X: pd.DataFrame, y: pd.DataFrame)
     )
 
     return perm_importance
+
+def get_raw_data():
+    """
+    Returns raw DataFrame.
+
+    :return: pd.DataFrame - raw data
+    """
+
+    return pd.read_csv(c.u_config.train_path)
+
+
+def get_exp_path(exp_name):
+    """
+    Returns experiment path from given experiment name.
+
+    :param exp_name: str- experiment name
+    :return: str - experiment path
+    """
+
+    return os.path.join(c.u_config.exp_dir, exp_name)
+
+
+def get_exp_config(exp_path):
+    """
+    Returns experimental config from given experiment path.
+
+    :param exp_path: str - experiment path
+    :return: dict - experiment config
+    """
+
+    with open(exp_path) as p:
+        return yaml.safe_load(p)
 
 
 
