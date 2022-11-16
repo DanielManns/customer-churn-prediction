@@ -1,12 +1,8 @@
-import pandas as pd
 from src.utility.argument_parser import parse
-
 import warnings
 from src.config import config
-
 from src.models.training import run_experiment_session
 
-pd.set_option('display.max_columns', 500)
 c = config()
 
 
