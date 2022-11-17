@@ -106,8 +106,9 @@ def apply_ccp(pipe: Pipeline, X: pd.DataFrame, y: pd.DataFrame, ccp_path: Bunch)
     ccp_alphas, impurities = ccp_path.ccp_alphas, ccp_path.impurities
     pipes, train_scores, test_scores = [], [], []
     for ccp_alpha in ccp_alphas:
-        pipe[-1].set_params(ccp_alpha=ccp_alpha)
-        p, train_score, test_score, _ = train_pipeline(pipe, X, y, ccp=False)
+        new_pipe = clone(pipe)
+        new_pipe[-1].set_params(ccp_alpha=ccp_alpha)
+        p, train_score, test_score, _ = train_pipeline(new_pipe, X, y, ccp=False)
         pipes.append(p)
         train_scores.append(train_score)
         test_scores.append(test_score)
@@ -153,7 +154,7 @@ def train_pipeline(pipe: Pipeline, X: pd.DataFrame, y: pd.DataFrame, test_ratio=
     :return: sklearn.pipeline Pipeline - Pipeline
     """
     ccp_path = None
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_ratio)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_ratio, random_state=con.m_config.train_seed)
 
     pipe.fit(X_train, y_train)
 

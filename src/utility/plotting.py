@@ -14,5 +14,5 @@ def plot_feature_importance(feature_importance, classifier_name):
 
 
 def plot_DT(dt, feature_names):
-    tree.plot_tree(dt, feature_names=feature_names)
+    tree.plot_tree(dt, feature_names=feature_names, class_names=["No churn", "Churn"])
     plt.show()
