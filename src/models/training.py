@@ -19,7 +19,7 @@ from src.models.preprocessing import get_con_features, get_cat_features, create_
 from src.config import config
 import os
 
-from src.utility.plotting import plot_feature_importance, plot_DT
+from src.utility.plotting import plot_feature_importance, plot_DT, plot_alpha_score_curve
 
 con = config()
 
@@ -77,22 +77,27 @@ def run_experiment(exp_name: str) -> None:
         if isinstance(classifier, BaseDecisionTree):
             ccp = True
 
+        # transform data
         col_transformer = create_col_transformer(X)
+        #X = col_transformer.fit_transform(X)
+
         pipe = create_pipeline(col_transformer, classifier)
 
         # train pipe with train_test_split
         pipe, train_score, test_score, ccp_path = train_pipeline(pipe, X, y, test_ratio=test_ratio, ccp=ccp)
 
-        # do cost complexity pruning
+        # do cost complexity pruning and find dt which maximizes score on this split
         if ccp and ccp_path:
             ccp_pipes, ccp_train_scores, ccp_test_scores = apply_ccp(pipe, X, y, ccp_path)
             pipe, train_score, test_score = find_best_ccp_pipe(ccp_pipes, ccp_train_scores, ccp_test_scores)
+            # plot_alpha_score_curve(ccp_train_scores, ccp_test_scores, ccp_path.ccp_alphas)
             print(f"Best ccp alpha: {pipe[-1].get_params()['ccp_alpha']}")
 
         print(f"Train accuracy score of {pipe['classifier'].__class__.__name__}: {train_score}")
         print(f"Test accuracy score of {pipe['classifier'].__class__.__name__}: {test_score}")
 
-        cv_pipelines = cross_validate_pipeline(clone(pipe), X, y, cv_method(**cv_method_params))
+        # use found classifier for cross validation
+        cv_pipelines, scores = cross_validate_pipeline(clone(pipe), X, y, cv_method(**cv_method_params))
 
         if classifier.__class__.__name__ in ["DecisionTreeClassifier", "LogisticRegression"]:
             # feature_importance = get_feature_importance(pipe)
@@ -103,6 +108,15 @@ def run_experiment(exp_name: str) -> None:
 
 
 def apply_ccp(pipe: Pipeline, X: pd.DataFrame, y: pd.DataFrame, ccp_path: Bunch) -> [[Pipeline], [float], [float]]:
+    """
+    Applies cost complexity pruning to classifier in given pipeline.
+
+    :param pipe:
+    :param X:
+    :param y:
+    :param ccp_path:
+    :return:
+    """
     ccp_alphas, impurities = ccp_path.ccp_alphas, ccp_path.impurities
     pipes, train_scores, test_scores = [], [], []
     for ccp_alpha in ccp_alphas:
@@ -181,12 +195,13 @@ def cross_validate_pipeline(pipe: Pipeline, X: pd.DataFrame, y: pd.DataFrame, cv
     scores = cv_result["test_score"]
     pipelines = cv_result["estimator"]
     mean_score = scores.mean()
+    std_score = scores.std()
     print(
         f"The {cv_method.__class__.__name__} score of {pipe[1].__class__.__name__} is: "
-        f"{mean_score:.3f} ± {scores.std():.3f}"
+        f"{mean_score:.3f} ± {std_score:.3f}"
     )
 
-    return pipelines
+    return pipelines, scores
 
 
 def get_exp_dfs(exp_config: dict) -> [pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
