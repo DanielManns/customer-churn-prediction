@@ -81,7 +81,7 @@ def run_experiment(exp_name: str) -> None:
         if isinstance(clf, BaseDecisionTree):
             best, alphas, scores, train_scores = find_best_ccp_alpha(clf, X, y)
             clf.set_params(ccp_alpha=best[0])
-            plot_alpha_score_curve(train_scores, scores, alphas)
+            # plot_alpha_score_curve(train_scores, scores, alphas)
 
         if cv:
             # cross validate classifier

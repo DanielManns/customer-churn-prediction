@@ -16,7 +16,7 @@ def plot_feature_importance(feature_importance, classifier_name):
 
 def plot_DT(dt, feature_names, class_names):
     fig, ax = plt.subplots()
-    tree.plot_tree(dt, feature_names=feature_names, class_names=class_names, ax=ax)
+    tree.plot_tree(dt, feature_names=feature_names, class_names=class_names, ax=ax, filled=True, proportion=True)
     plt.show()
 
 

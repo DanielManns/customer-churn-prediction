@@ -15,7 +15,6 @@ def start_training():
 
 # TODO: Implement save utility for models and results folder
 # TODO: Implement Logger
-# TODO: Implement cross validation pruning
 if __name__ == "__main__":
     args = parse()
     print(args)
