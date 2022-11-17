@@ -19,9 +19,4 @@ classifiers:
       "DecisionTreeClassifier"
   ]
 
-ran_classifiers:
-  [
-      "DecisionTreeClassifier"
-  ]
-
 train_seed: 14

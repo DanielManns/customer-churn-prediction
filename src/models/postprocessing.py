@@ -5,18 +5,14 @@ from sklearn.tree import DecisionTreeClassifier, BaseDecisionTree
 import pandas as pd
 from sklearn.metrics import accuracy_score
 from sklearn.pipeline import Pipeline
+from sklearn.base import clone, BaseEstimator
+from sklearn.compose import ColumnTransformer
+from sklearn.utils import Bunch
 
 
-def ccp_dt(X_train: pd.DataFrame, y_train: pd.DataFrame) -> DecisionTreeClassifier:
-    dummy_tree = DecisionTreeClassifier()
-    path = dummy_tree.cost_complexity_pruning_path(X_train, y_train)
-    ccp_alphas, impurities = path.ccp_alphas, path.impurities
-    trees = []
-    scores = []
-    for alpha in ccp_alphas:
-        tree = DecisionTreeClassifier(random_state=0, ccp_alpha=alpha)
-        tree.fit(X_train, y_train)
-        trees.append(tree)
+
+
+
 
 
 def get_feature_importance(pipe: Pipeline) -> pd.DataFrame:
