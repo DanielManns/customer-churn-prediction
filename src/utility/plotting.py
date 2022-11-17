@@ -14,10 +14,10 @@ def plot_feature_importance(feature_importance, classifier_name):
     plt.show()
 
 
-def plot_DT(dt, feature_names):
+def plot_DT(dt, feature_names, class_names):
     fig, ax = plt.subplots()
-    tree.plot_tree(dt, feature_names=feature_names, class_names=["No churn", "Churn"], ax=ax)
-    fig.show()
+    tree.plot_tree(dt, feature_names=feature_names, class_names=class_names, ax=ax)
+    plt.show()
 
 
 def plot_alpha_score_curve(train_scores, test_scores, ccp_alphas):

@@ -1,7 +1,7 @@
 import pandas as pd
 import yaml
 from sklearn.base import BaseEstimator
-from sklearn.model_selection import train_test_split, cross_validate
+from sklearn.model_selection import train_test_split, cross_validate, cross_val_score
 from sklearn.pipeline import Pipeline
 
 from sklearn.naive_bayes import GaussianNB, CategoricalNB
@@ -22,6 +22,7 @@ import os
 from src.utility.plotting import plot_feature_importance, plot_DT, plot_alpha_score_curve
 
 con = config()
+cv = True
 
 
 def run_experiment_session(exp_names: list[str]) -> None:
@@ -54,14 +55,13 @@ def run_experiment(exp_name: str) -> None:
     cv_method_params = exp_config["cross_validation"]["params"]
     test_ratio = exp_config["training"]["test_ratio"]
     train_seed = con.m_config.train_seed
-    ccp = False
 
     cat_X, con_X, mixed_X, y = get_exp_dfs(exp_config)
 
     for _, c in classifiers.items():
         c_class = eval(c["class_name"])
         c_params = c["params"]
-        classifier = c_class(**c_params)
+        clf = c_class(**c_params)
 
         if c["type"] == "categorical":
             X = cat_X
@@ -71,76 +71,76 @@ def run_experiment(exp_name: str) -> None:
             X = mixed_X
 
         # append training seed if classifiers has random component
-        if "random_state" in classifier.get_params().keys():
-            classifier.set_params(random_state=train_seed)
-
-        if isinstance(classifier, BaseDecisionTree):
-            ccp = True
+        if "random_state" in clf.get_params().keys():
+            clf.set_params(random_state=train_seed)
 
         # transform data
         col_transformer = create_col_transformer(X)
-        #X = col_transformer.fit_transform(X)
+        X = col_transformer.fit_transform(X)
 
-        pipe = create_pipeline(col_transformer, classifier)
+        if isinstance(clf, BaseDecisionTree):
+            best, alphas, scores, train_scores = find_best_ccp_alpha(clf, X, y)
+            clf.set_params(ccp_alpha=best[0])
+            plot_alpha_score_curve(train_scores, scores, alphas)
 
-        # train pipe with train_test_split
-        pipe, train_score, test_score, ccp_path = train_pipeline(pipe, X, y, test_ratio=test_ratio, ccp=ccp)
+        if cv:
+            # cross validate classifier
+            clfs, scores = cross_validate_clf(clone(clf), X, y, cv_method(**cv_method_params))
+            clf = clfs[0]
+            score = scores.mean()
+        else:
+            # train classifier with train_test_split
+            clf, train_score, score = tts_train_clf(clf, X, y, test_ratio=test_ratio)
+            print(f"Train accuracy score of {clf.__class__.__name__}: {train_score}")
 
-        # do cost complexity pruning and find dt which maximizes score on this split
-        if ccp and ccp_path:
-            ccp_pipes, ccp_train_scores, ccp_test_scores = apply_ccp(pipe, X, y, ccp_path)
-            pipe, train_score, test_score = find_best_ccp_pipe(ccp_pipes, ccp_train_scores, ccp_test_scores)
-            # plot_alpha_score_curve(ccp_train_scores, ccp_test_scores, ccp_path.ccp_alphas)
-            print(f"Best ccp alpha: {pipe[-1].get_params()['ccp_alpha']}")
+        print(f"Test accuracy score of {clf.__class__.__name__}: {score}")
 
-        print(f"Train accuracy score of {pipe['classifier'].__class__.__name__}: {train_score}")
-        print(f"Test accuracy score of {pipe['classifier'].__class__.__name__}: {test_score}")
-
-        # use found classifier for cross validation
-        cv_pipelines, scores = cross_validate_pipeline(clone(pipe), X, y, cv_method(**cv_method_params))
-
-        if classifier.__class__.__name__ in ["DecisionTreeClassifier", "LogisticRegression"]:
+        if clf.__class__.__name__ in ["DecisionTreeClassifier", "LogisticRegression"]:
             # feature_importance = get_feature_importance(pipe)
             # plot_feature_importance(feature_importance, classifier.__class__.__name__)
-            if isinstance(classifier, DecisionTreeClassifier):
-                plot_DT(pipe[-1], feature_names=pipe[:-1].get_feature_names_out())
+            if isinstance(clf, DecisionTreeClassifier):
+                plot_DT(clf, feature_names=col_transformer.get_feature_names_out(), class_names=["No churn", "Churn"])
         print("\n")
 
 
-def apply_ccp(pipe: Pipeline, X: pd.DataFrame, y: pd.DataFrame, ccp_path: Bunch) -> [[Pipeline], [float], [float]]:
-    """
-    Applies cost complexity pruning to classifier in given pipeline.
-
-    :param pipe:
-    :param X:
-    :param y:
-    :param ccp_path:
-    :return:
-    """
+def find_best_ccp_alpha(clf, X, y):
+    # grow full tree with entire dataset, get ccp_path
+    ccp_path = clf.cost_complexity_pruning_path(X, y)
     ccp_alphas, impurities = ccp_path.ccp_alphas, ccp_path.impurities
-    pipes, train_scores, test_scores = [], [], []
+    best = (0.0, 0.0)
+    alphas, scores, train_scores = [], [], []
+
     for ccp_alpha in ccp_alphas:
-        new_pipe = clone(pipe)
-        new_pipe[-1].set_params(ccp_alpha=ccp_alpha)
-        p, train_score, test_score, _ = train_pipeline(new_pipe, X, y, ccp=False)
-        pipes.append(p)
-        train_scores.append(train_score)
-        test_scores.append(test_score)
-    return pipes, train_scores, test_scores
+        new_clf = clone(clf)
+        new_clf.set_params(ccp_alpha=ccp_alpha)
+
+        # cv produces N clfs and scores
+        cv_result = cross_validate(new_clf, X, y, cv=5, return_train_score=True)
+        cv_test_scores = cv_result["test_score"]
+        cv_train_scores = cv_result["train_score"]
+        mean_score = cv_test_scores.mean()
+        mean_train_score = cv_train_scores.mean()
+        alphas.append(ccp_alpha)
+        scores.append(mean_score)
+        train_scores.append(mean_train_score)
+
+        if mean_score > best[1]:
+            best = (ccp_alpha, mean_score)
+    return best, alphas, scores, train_scores
 
 
-def find_best_ccp_pipe(pipes: [Pipeline], train_scores, test_scores) -> [Pipeline, float]:
+def find_best_ccp_clf(clfs: [BaseEstimator], scores) -> [BaseEstimator, float]:
     """
     Returns pipeline with the best test score from list of ccp pipelines.
 
-    :param pipes: [Pipeline] - list of pipelines with decision tree classifier
+    :param clfs: [Pipeline] - list of pipelines with decision tree classifier
     :param train_scores: [float] - list of train scores of each Pipeline
-    :param test_scores: [float] - list of test scores of each Pipeline
+    :param scores: [float] - list of test scores of each Pipeline
     :return: Pipeline - Pipeline wit the highest test score
     """
 
-    idx = np.argmax(np.array(test_scores))
-    return pipes[idx], train_scores[idx], test_scores[idx]
+    idx = np.argmax(np.array(scores))
+    return clfs[idx], scores[idx]
 
 
 def create_pipeline(col_transformer: ColumnTransformer, classifier: BaseEstimator) -> Pipeline:
@@ -155,53 +155,51 @@ def create_pipeline(col_transformer: ColumnTransformer, classifier: BaseEstimato
     return Pipeline(steps=[("col_transformer", col_transformer), ("classifier", classifier)])
 
 
-def train_pipeline(pipe: Pipeline, X: pd.DataFrame, y: pd.DataFrame, test_ratio=0.2, ccp=False) -> [Pipeline, float, float]:
+def tts_train_clf(clf: BaseEstimator, X: pd.DataFrame, y: pd.DataFrame, test_ratio=0.2) -> [BaseEstimator, float, float]:
     """
     Trains a pipeline from given training data and training labels using a classical train-test split method.
 
-    :param pipe: sklearn.pipeline Pipeline - Pipeline
+    :param clf: sklearn.base.BaseEstimator - Classifier
     :param X: pd.DataFrame - training data
     :param y: pd.DataFrame - training labels
     :param test_ratio: float - ratio of train set size / test set size
     :param ccp: bool - returns ccp path if true
 
-    :return: sklearn.pipeline Pipeline - Pipeline
+    :return: sklearn.base.BaseEstimator - Trained Classifier
     """
-    ccp_path = None
+
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_ratio, random_state=con.m_config.train_seed)
 
-    pipe.fit(X_train, y_train)
+    clf.fit(X_train, y_train)
 
-    if ccp and isinstance(pipe[-1], BaseDecisionTree):
-        ccp_path = pipe[-1].cost_complexity_pruning_path(pipe[:-1].transform(X_train), y_train)
+    train_score = clf.score(X_train, y_train)
+    test_score = clf.score(X_test, y_test)
 
-    train_score = pipe.score(X_train, y_train)
-    test_score = pipe.score(X_test, y_test)
-
-    return pipe, train_score, test_score, ccp_path
+    return clf, train_score, test_score
 
 
-def cross_validate_pipeline(pipe: Pipeline, X: pd.DataFrame, y: pd.DataFrame, cv_method: BaseCrossValidator) -> float:
+def cross_validate_clf(clf: BaseEstimator, X: pd.DataFrame, y: pd.DataFrame, cv_method: BaseCrossValidator) -> float:
     """
     Applies cross validation to given pipeline, data and labels. This includes training and evaluation.
 
     :param X: pd.DataFrame - data (train AND test data)
     :param y: pd.DataFrame - labels (train AND test labels)
-    :param pipe: sklearn.pipeline Pipeline - Pipeline
+    :param clf: sklearn.pipeline Pipeline - Pipeline
     :param cv_method: sklearn.model_selection._validation - cross validation method
     :return: float - mean cross validation score
     """
-    cv_result = cross_validate(pipe, X, y, cv=cv_method, return_estimator=True)
+    cv_result = cross_validate(clf, X, y, cv=cv_method, return_estimator=True)
     scores = cv_result["test_score"]
-    pipelines = cv_result["estimator"]
+    clfs = cv_result["estimator"]
+
     mean_score = scores.mean()
     std_score = scores.std()
     print(
-        f"The {cv_method.__class__.__name__} score of {pipe[1].__class__.__name__} is: "
+        f"The {cv_method.__class__.__name__} score of {clf.__class__.__name__} is: "
         f"{mean_score:.3f} ± {std_score:.3f}"
     )
 
-    return pipelines, scores
+    return clfs, scores
 
 
 def get_exp_dfs(exp_config: dict) -> [pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
