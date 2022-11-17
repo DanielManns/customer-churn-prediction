@@ -79,21 +79,23 @@ def run_experiment(exp_name: str) -> None:
         X = col_transformer.fit_transform(X)
 
         if isinstance(clf, BaseDecisionTree):
-            best, alphas, scores, train_scores = find_best_ccp_alpha(clf, X, y)
+            best, alphas, test_scores, train_scores = find_best_ccp_alpha(clf, X, y)
             clf.set_params(ccp_alpha=best[0])
             # plot_alpha_score_curve(train_scores, scores, alphas)
 
         if cv:
             # cross validate classifier
-            clfs, scores = cross_validate_clf(clone(clf), X, y, cv_method(**cv_method_params))
+            clfs, train_scores, test_scores = cross_validate_clf(clone(clf), X, y, cv_method(**cv_method_params))
             clf = clfs[0]
-            score = scores.mean()
+            train_score = np.round(train_scores.mean(), 3)
+            test_score = np.round(test_scores.mean(), 3)
         else:
             # train classifier with train_test_split
-            clf, train_score, score = tts_train_clf(clf, X, y, test_ratio=test_ratio)
-            print(f"Train accuracy score of {clf.__class__.__name__}: {train_score}")
+            clf, train_score, test_score = tts_train_clf(clf, X, y, test_ratio=test_ratio)
+            train_scores, test_scores = train_score, test_score
 
-        print(f"Test accuracy score of {clf.__class__.__name__}: {score}")
+        print(f"Train accuracy score of {clf.__class__.__name__}: {train_score} ± {np.round(train_scores.std(), 3)}")
+        print(f"Test accuracy score of {clf.__class__.__name__}: {test_score} ± {np.round(test_scores.std(), 3)}")
 
         if clf.__class__.__name__ in ["DecisionTreeClassifier", "LogisticRegression"]:
             # feature_importance = get_feature_importance(pipe)
@@ -178,7 +180,7 @@ def tts_train_clf(clf: BaseEstimator, X: pd.DataFrame, y: pd.DataFrame, test_rat
     return clf, train_score, test_score
 
 
-def cross_validate_clf(clf: BaseEstimator, X: pd.DataFrame, y: pd.DataFrame, cv_method: BaseCrossValidator) -> float:
+def cross_validate_clf(clf: BaseEstimator, X: pd.DataFrame, y: pd.DataFrame, cv_method: BaseCrossValidator) -> [[BaseEstimator], [float], [float]]:
     """
     Applies cross validation to given pipeline, data and labels. This includes training and evaluation.
 
@@ -188,18 +190,12 @@ def cross_validate_clf(clf: BaseEstimator, X: pd.DataFrame, y: pd.DataFrame, cv_
     :param cv_method: sklearn.model_selection._validation - cross validation method
     :return: float - mean cross validation score
     """
-    cv_result = cross_validate(clf, X, y, cv=cv_method, return_estimator=True)
-    scores = cv_result["test_score"]
+    cv_result = cross_validate(clf, X, y, cv=cv_method, return_estimator=True, return_train_score=True)
+    train_scores = cv_result["train_score"]
+    test_scores = cv_result["test_score"]
     clfs = cv_result["estimator"]
 
-    mean_score = scores.mean()
-    std_score = scores.std()
-    print(
-        f"The {cv_method.__class__.__name__} score of {clf.__class__.__name__} is: "
-        f"{mean_score:.3f} ± {std_score:.3f}"
-    )
-
-    return clfs, scores
+    return clfs, train_scores, test_scores
 
 
 def get_exp_dfs(exp_config: dict) -> [pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
