@@ -23,7 +23,9 @@ classifiers:
         params:
             criterion: "gini"
             splitter: "best"
-            max_depth: null
+
+training:
+    test_ratio: 0.2
 
 validation:
     method: "cross_validate"

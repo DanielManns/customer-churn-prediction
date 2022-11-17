@@ -25,6 +25,9 @@ classifiers:
             splitter: "best"
             max_depth: null
 
+training:
+    test_raio: 0.2
+
 cross_validation:
     class_name: "RepeatedKFold"
     params:

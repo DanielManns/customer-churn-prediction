@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 from sklearn import tree
 import graphviz
+from IPython.display import Image, display
+# display(Image(filename="causal_model.png"))
 
 def plot_feature_importance(feature_importance, classifier_name):
     feature_importance.plot.barh(figsize=(15, 10))
