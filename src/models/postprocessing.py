@@ -5,16 +5,16 @@ from sklearn.tree import DecisionTreeClassifier, BaseDecisionTree
 import pandas as pd
 from sklearn.metrics import accuracy_score
 from sklearn.pipeline import Pipeline
-from sklearn.base import clone, BaseEstimator
+from sklearn.base import clone, BaseEstimator, ClassifierMixin
 from sklearn.compose import ColumnTransformer
 from sklearn.utils import Bunch
 
 
-def get_feature_importance(clf: BaseEstimator, feature_names: [str]) -> pd.DataFrame:
+def get_feature_importance(clf: ClassifierMixin, feature_names: [str]) -> pd.DataFrame:
     """
     Returns feature importance of already trained classifier (train_test_split).
 
-    :param clf: sklearn.base.BaseEstimator - Classifier
+    :param clf: sklearn.base.ClassifierMixin - Classifier
     :param feature_names: [str] - List of feature names
     :return: pd.DataFrame - feature importance
     """
@@ -42,11 +42,11 @@ def get_feature_importance(clf: BaseEstimator, feature_names: [str]) -> pd.DataF
     return feature_importance
 
 
-def get_cv_feature_importance(clfs: [BaseEstimator], feature_names: [str]) -> pd.DataFrame:
+def get_cv_feature_importance(clfs: [ClassifierMixin], feature_names: [str]) -> pd.DataFrame:
     """
     Returns feature importance of already trained classifier (cross validation).
 
-    :param clfs: [sklearn.base.BaseEstimator] - List of classifiers from cross validation
+    :param clfs: [sklearn.base.ClassifierMixin] - List of classifiers from cross validation
     :param feature_names: [str] - List of feature names
     :return: pd.DataFrame - feature importance
     """
@@ -72,11 +72,11 @@ def get_cv_feature_importance(clfs: [BaseEstimator], feature_names: [str]) -> pd
     return feature_importance
 
 
-def get_permutation_importance(clf: BaseEstimator, X: pd.DataFrame, y: pd.DataFrame) -> pd.DataFrame:
+def get_permutation_importance(clf: ClassifierMixin, X: pd.DataFrame, y: pd.DataFrame) -> pd.DataFrame:
     """
     Returns permutation importance of given already trained pipeline and data.
 
-    :param clf: sklearn.base.BaseEstimator - Trained classifier
+    :param clf: sklearn.base.ClassifierMixin - Trained classifier
     :param X: pd.DataFrame - Data (train OR test)
     :param y: pd.DataFrame - Labels (train OR test)
     :return: pd.DataFrame - Permutation importance
