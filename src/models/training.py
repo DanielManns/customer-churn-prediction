@@ -12,7 +12,7 @@ from sklearn.inspection import permutation_importance
 from sklearn.compose import ColumnTransformer
 from sklearn.model_selection import BaseCrossValidator, RepeatedKFold
 from sklearn.utils import Bunch
-from sklearn.base import clone
+from sklearn.base import clone, ClassifierMixin
 from src.models.postprocessing import get_feature_importance
 from src.models.preprocessing import get_con_features, get_cat_features, create_col_transformer, \
     apply_preprocessing
@@ -79,7 +79,7 @@ def run_experiment(exp_name: str) -> None:
         X = col_transformer.fit_transform(X)
 
         if isinstance(clf, BaseDecisionTree):
-            best, alphas, test_scores, train_scores = find_best_ccp_alpha(clf, X, y)
+            best, alphas, train_scores, test_scores = find_best_ccp_alpha(clf, X, y)
             clf.set_params(ccp_alpha=best[0])
             # plot_alpha_score_curve(train_scores, scores, alphas)
 
@@ -105,12 +105,21 @@ def run_experiment(exp_name: str) -> None:
         print("\n")
 
 
-def find_best_ccp_alpha(clf, X, y):
+def find_best_ccp_alpha(clf: BaseDecisionTree, X: pd.DataFrame, y: pd.DataFrame) -> [(float, float), [float], [float], [float]]:
+    """
+    Finds the best cross validated alpha value for a single DecisionTree.
+
+    :param clf: sklearn.tree.DecisionTreeClassifier - Untrained but initialised classifier.
+    :param X: pd.DataFrame - Data (train and test)
+    :param y: pd.DataFrame - Labels (train and test)
+    :return: [(float, float), [float], [float], [float]] - best_alpha, all_alphas, all_mean_train_scores, all_mean_test_scores
+    """
+
     # grow full tree with entire dataset, get ccp_path
     ccp_path = clf.cost_complexity_pruning_path(X, y)
     ccp_alphas, impurities = ccp_path.ccp_alphas, ccp_path.impurities
     best = (0.0, 0.0)
-    alphas, scores, train_scores = [], [], []
+    alphas, test_scores, train_scores = [], [], []
 
     for ccp_alpha in ccp_alphas:
         new_clf = clone(clf)
@@ -120,32 +129,31 @@ def find_best_ccp_alpha(clf, X, y):
         cv_result = cross_validate(new_clf, X, y, cv=5, return_train_score=True)
         cv_test_scores = cv_result["test_score"]
         cv_train_scores = cv_result["train_score"]
-        mean_score = cv_test_scores.mean()
+        mean_test_score = cv_test_scores.mean()
         mean_train_score = cv_train_scores.mean()
         alphas.append(ccp_alpha)
-        scores.append(mean_score)
         train_scores.append(mean_train_score)
+        test_scores.append(mean_test_score)
 
-        if mean_score > best[1]:
-            best = (ccp_alpha, mean_score)
-    return best, alphas, scores, train_scores
+        if mean_test_score > best[1]:
+            best = (ccp_alpha, mean_test_score)
+    return best, alphas, train_scores, test_scores
 
 
-def find_best_ccp_clf(clfs: [BaseEstimator], scores) -> [BaseEstimator, float]:
+def find_best_ccp_clf(clfs: [ClassifierMixin], test_scores) -> [ClassifierMixin, float]:
     """
     Returns pipeline with the best test score from list of ccp pipelines.
 
     :param clfs: [Pipeline] - list of pipelines with decision tree classifier
-    :param train_scores: [float] - list of train scores of each Pipeline
-    :param scores: [float] - list of test scores of each Pipeline
+    :param test_scores: [float] - list of test scores of each Pipeline
     :return: Pipeline - Pipeline wit the highest test score
     """
 
-    idx = np.argmax(np.array(scores))
-    return clfs[idx], scores[idx]
+    idx = np.argmax(np.array(test_scores))
+    return clfs[idx], test_scores[idx]
 
 
-def create_pipeline(col_transformer: ColumnTransformer, classifier: BaseEstimator) -> Pipeline:
+def create_pipeline(col_transformer: ColumnTransformer, classifier: ClassifierMixin) -> Pipeline:
     """
     Creates a sklearn pipeline from a ColumnTransformer and a classifier.
 
@@ -157,7 +165,7 @@ def create_pipeline(col_transformer: ColumnTransformer, classifier: BaseEstimato
     return Pipeline(steps=[("col_transformer", col_transformer), ("classifier", classifier)])
 
 
-def tts_train_clf(clf: BaseEstimator, X: pd.DataFrame, y: pd.DataFrame, test_ratio=0.2) -> [BaseEstimator, float, float]:
+def tts_train_clf(clf: ClassifierMixin, X: pd.DataFrame, y: pd.DataFrame, test_ratio=0.2) -> [ClassifierMixin, float, float]:
     """
     Trains a pipeline from given training data and training labels using a classical train-test split method.
 
@@ -165,9 +173,8 @@ def tts_train_clf(clf: BaseEstimator, X: pd.DataFrame, y: pd.DataFrame, test_rat
     :param X: pd.DataFrame - training data
     :param y: pd.DataFrame - training labels
     :param test_ratio: float - ratio of train set size / test set size
-    :param ccp: bool - returns ccp path if true
 
-    :return: sklearn.base.BaseEstimator - Trained Classifier
+    :return: [sklearn.base.ClassifierMixin], float, float] - Trained Classifier, train_score, test_score
     """
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_ratio, random_state=con.m_config.train_seed)
@@ -180,7 +187,8 @@ def tts_train_clf(clf: BaseEstimator, X: pd.DataFrame, y: pd.DataFrame, test_rat
     return clf, train_score, test_score
 
 
-def cross_validate_clf(clf: BaseEstimator, X: pd.DataFrame, y: pd.DataFrame, cv_method: BaseCrossValidator) -> [[BaseEstimator], [float], [float]]:
+def cross_validate_clf(clf: ClassifierMixin, X: pd.DataFrame, y: pd.DataFrame, cv_method: BaseCrossValidator) -> \
+        [[ClassifierMixin], [float], [float]]:
     """
     Applies cross validation to given pipeline, data and labels. This includes training and evaluation.
 
@@ -188,8 +196,9 @@ def cross_validate_clf(clf: BaseEstimator, X: pd.DataFrame, y: pd.DataFrame, cv_
     :param y: pd.DataFrame - labels (train AND test labels)
     :param clf: sklearn.pipeline Pipeline - Pipeline
     :param cv_method: sklearn.model_selection._validation - cross validation method
-    :return: float - mean cross validation score
+    :return: [[ClassifierMixin], [float], [float]] - List of N classifiers, train_scores and test_scores
     """
+
     cv_result = cross_validate(clf, X, y, cv=cv_method, return_estimator=True, return_train_score=True)
     train_scores = cv_result["train_score"]
     test_scores = cv_result["test_score"]
@@ -202,8 +211,8 @@ def get_exp_dfs(exp_config: dict) -> [pd.DataFrame, pd.DataFrame, pd.DataFrame, 
     """
     Returns preprocessed categorical-, continuous-, and mixed DataFrame as well as labels.
 
-    :param exp_config: dict - eperimental configuration
-    :return: list of pd.DataFrames - cat_X, con_X, mixed_X, y
+    :param exp_config: dict - experimental configuration
+    :return: [pd.DataFrame] - categorical data, continuous data, mixed data, labels
     """
 
     raw_df = get_raw_data()
@@ -221,10 +230,10 @@ def get_exp_dfs(exp_config: dict) -> [pd.DataFrame, pd.DataFrame, pd.DataFrame, 
     cat_df = mixed_df.drop(columns=get_con_features(mixed_df))
     con_df = mixed_df.drop(columns=get_cat_features(mixed_df))
 
-    return  cat_df, con_df, mixed_df, y
+    return cat_df, con_df, mixed_df, y
 
 
-def get_raw_data():
+def get_raw_data() -> pd.DataFrame:
     """
     Returns raw DataFrame.
 
@@ -234,7 +243,7 @@ def get_raw_data():
     return pd.read_csv(con.u_config.train_path)
 
 
-def get_exp_path(exp_name):
+def get_exp_path(exp_name) -> str:
     """
     Returns experiment path from given experiment name.
 
@@ -245,7 +254,7 @@ def get_exp_path(exp_name):
     return os.path.join(con.u_config.exp_dir, exp_name)
 
 
-def get_exp_config(exp_path):
+def get_exp_config(exp_path) -> dict:
     """
     Returns experimental config from given experiment path.
 
