@@ -13,13 +13,13 @@ from sklearn.compose import ColumnTransformer
 from sklearn.model_selection import BaseCrossValidator, RepeatedKFold
 from sklearn.utils import Bunch
 from sklearn.base import clone, ClassifierMixin
-from src.models.postprocessing import get_feature_importance
 from src.models.preprocessing import get_con_features, get_cat_features, create_col_transformer, \
-    apply_preprocessing
+    apply_preprocessing, get_exp_dfs
 from src.config import config
 import os
 
 from src.utility.plotting import plot_feature_importance, plot_DT, plot_alpha_score_curve
+from src.utility.utility import get_exp_path, get_exp_config, get_raw_data
 
 con = config()
 cv = True
@@ -207,63 +207,13 @@ def cross_validate_clf(clf: ClassifierMixin, X: pd.DataFrame, y: pd.DataFrame, c
     return clfs, train_scores, test_scores
 
 
-def get_exp_dfs(exp_config: dict) -> [pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    """
-    Returns preprocessed categorical-, continuous-, and mixed DataFrame as well as labels.
-
-    :param exp_config: dict - experimental configuration
-    :return: [pd.DataFrame] - categorical data, continuous data, mixed data, labels
-    """
-
-    raw_df = get_raw_data()
-    mixed_df = apply_preprocessing(raw_df)
-
-    y = mixed_df[con.m_config.target_name]
-    mixed_df = mixed_df.drop(columns=[con.m_config.target_name])
-
-    is_subset = exp_config["features"]["is_subset"]
-
-    # subset important variables
-    if is_subset:
-        mixed_df = mixed_df.loc[:, con.m_config.im_vars]
-
-    cat_df = mixed_df.drop(columns=get_con_features(mixed_df))
-    con_df = mixed_df.drop(columns=get_cat_features(mixed_df))
-
-    return cat_df, con_df, mixed_df, y
 
 
-def get_raw_data() -> pd.DataFrame:
-    """
-    Returns raw DataFrame.
-
-    :return: pd.DataFrame - raw data
-    """
-
-    return pd.read_csv(con.u_config.train_path)
 
 
-def get_exp_path(exp_name) -> str:
-    """
-    Returns experiment path from given experiment name.
-
-    :param exp_name: str- experiment name
-    :return: str - experiment path
-    """
-
-    return os.path.join(con.u_config.exp_dir, exp_name)
 
 
-def get_exp_config(exp_path) -> dict:
-    """
-    Returns experimental config from given experiment path.
 
-    :param exp_path: str - experiment path
-    :return: dict - experiment config
-    """
-
-    with open(exp_path) as p:
-        return yaml.safe_load(p)
 
 
 

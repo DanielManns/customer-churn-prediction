@@ -3,7 +3,10 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.compose import ColumnTransformer
 from sklearn.compose import make_column_selector as selector
 import numpy as np
+import config as c
+from src.utility.utility import get_raw_data
 
+con = c.config()
 
 def apply_preprocessing(df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -13,6 +16,32 @@ def apply_preprocessing(df: pd.DataFrame) -> pd.DataFrame:
     :return: Pandas DataFrame - preprocessed DataFrame
     """
     return enrich_df(clean_df(df))
+
+
+def get_exp_dfs(exp_config: dict) -> [pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """
+    Returns preprocessed categorical-, continuous-, and mixed DataFrame as well as labels.
+
+    :param exp_config: dict - experimental configuration
+    :return: [pd.DataFrame] - categorical data, continuous data, mixed data, labels
+    """
+
+    raw_df = get_raw_data()
+    mixed_df = apply_preprocessing(raw_df)
+
+    y = mixed_df[con.m_config.target_name]
+    mixed_df = mixed_df.drop(columns=[con.m_config.target_name])
+
+    is_subset = exp_config["features"]["is_subset"]
+
+    # subset important variables
+    if is_subset:
+        mixed_df = mixed_df.loc[:, con.m_config.im_vars]
+
+    cat_df = mixed_df.drop(columns=get_con_features(mixed_df))
+    con_df = mixed_df.drop(columns=get_cat_features(mixed_df))
+
+    return cat_df, con_df, mixed_df, y
 
 
 def clean_df(df: pd.DataFrame) -> pd.DataFrame:

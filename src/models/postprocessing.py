@@ -9,6 +9,40 @@ from sklearn.base import clone, BaseEstimator, ClassifierMixin
 from sklearn.compose import ColumnTransformer
 from sklearn.utils import Bunch
 
+from src.models.preprocessing import create_col_transformer, get_exp_dfs
+from src.utility.plotting import plot_feature_importance
+from src.utility.utility import load_exp_models, get_exp_config
+
+
+def run_postprocessing_session(exp_names: list[str]) -> None:
+    """
+    Starts postprocessing analysis of multiple experiments.
+
+    :param exp_names: list[str] - list of experiment names
+    :return: None
+    """
+
+    for exp_name in exp_names:
+        run_postprocessing(exp_name)
+
+
+def run_postprocessing(exp_name: str) -> None:
+    """
+    Starts postprocessing analysis of a single experiment.
+
+    :param exp_name: str - experiment name
+    :return: None
+    """
+
+    clfs, Xs, y = load_exp_models(exp_name)
+
+    for clf, X in zip(clfs, Xs):
+        col_transformer = create_col_transformer(X)
+        X = col_transformer.fit_transform(X)
+        feature_names = col_transformer.get_feature_names_out()
+        feature_importance = get_feature_importance(clf, feature_names)
+        plot_feature_importance(feature_importance, feature_names)
+
 
 def get_feature_importance(clf: ClassifierMixin, feature_names: [str]) -> pd.DataFrame:
     """

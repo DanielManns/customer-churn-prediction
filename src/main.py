@@ -1,3 +1,4 @@
+from src.models.postprocessing import run_postprocessing, run_postprocessing_session
 from src.utility.argument_parser import parse
 import warnings
 from src.config import config
@@ -14,8 +15,8 @@ def start_training():
     run_experiment_session(c.u_config.experiments)
 
 
-def start_analysis():
-    pass
+def start_postprocessing():
+    run_postprocessing_session(c.u_config.experiments)
 
 
 # TODO: Implement save utility for models and results folder
@@ -30,3 +31,4 @@ if __name__ == "__main__":
     warnings.warn = warn
 
     start_training()
+    # start_postprocessing()
