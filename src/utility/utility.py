@@ -9,6 +9,32 @@ import src.models.preprocessing as pre
 con = config.config()
 
 
+def load_raw_data() -> pd.DataFrame:
+    """
+    Returns raw DataFrame.
+
+    :return: pd.DataFrame - raw data
+    """
+
+    return pd.read_csv(con.u_config.train_path)
+
+
+def load_exp_config(exp_name) -> dict:
+    """
+    Returns experimental config from given experiment path.
+
+    :param exp_name: str - experiment path
+    :return: dict - experiment config
+    """
+
+    exp_path = get_exp_conf_path(exp_name)
+
+    with open(exp_path, "rb") as p:
+        print(f"\nLoaded experiment located at {exp_path} ...")
+        return yaml.safe_load(p)
+
+
+
 def load_exp_models(exp_name: str) -> [[ClassifierMixin], [pd.DataFrame], pd.DataFrame]:
     """
     Loads already trained models for given experimental config.
@@ -63,15 +89,6 @@ def load_clf(exp_name: str, clf: ClassifierMixin) -> ClassifierMixin:
     clf_path = get_clf_path(exp_name, clf)
     return pickle.load(open(clf_path, "rb"))
 
-def get_raw_data() -> pd.DataFrame:
-    """
-    Returns raw DataFrame.
-
-    :return: pd.DataFrame - raw data
-    """
-
-    return pd.read_csv(con.u_config.train_path)
-
 
 def get_exp_dir(exp_name: str) -> str:
     """
@@ -102,7 +119,7 @@ def get_exp_conf_path(exp_name) -> str:
     :return: str - experiment configuration path
     """
 
-    return os.path.join(get_exp_conf_path(exp_name), exp_name + ".yaml")
+    return os.path.join(get_exp_dir(exp_name), exp_name + ".yaml")
 
 
 def get_clf_path(exp_name, clf):
@@ -117,13 +134,18 @@ def get_clf_path(exp_name, clf):
     return os.path.join(get_exp_check_dir(exp_name), clf.__class__.__name__)
 
 
-def load_exp_config(exp_path) -> dict:
+def create_exp_dirs(exp_name: str) -> None:
     """
-    Returns experimental config from given experiment path.
-
-    :param exp_path: str - experiment path
-    :return: dict - experiment config
+    Creates required directories for a given experiment name
+    :param exp_name: str - experiment name
+    :return: None
     """
 
-    with open(exp_path) as p:
-        return yaml.safe_load(p)
+    p_dir = os.path.join(con.u_config.exp_dir, exp_name)
+    p_c = os.path.join(p_dir, "checkpoints")
+    paths = [p_dir, p_c]
+    for p in paths:
+        if not os.path.isdir(p):
+            os.makedirs(p)
+
+

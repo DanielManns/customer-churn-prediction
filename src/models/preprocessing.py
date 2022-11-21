@@ -4,7 +4,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.compose import make_column_selector as selector
 import numpy as np
 import config as c
-from src.utility.utility import get_raw_data
+from src.utility.utility import load_raw_data
 
 con = c.config()
 
@@ -28,7 +28,7 @@ def get_exp_df(data_type: str, is_subset: bool) -> [pd.DataFrame, pd.DataFrame, 
     :return: [pd.DataFrame, pd.DataFrame, ColumnTransformer] - X, y, ColumnTransformer
     """
 
-    raw_df = get_raw_data()
+    raw_df = load_raw_data()
     mixed_df = apply_preprocessing(raw_df)
 
     y = mixed_df[con.m_config.target_name]

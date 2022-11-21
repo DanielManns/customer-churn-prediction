@@ -21,7 +21,7 @@ from src.config import config
 import os
 
 from src.utility.plotting import plot_feature_importance, plot_DT, plot_alpha_score_curve
-from src.utility.utility import get_exp_conf_path, load_exp_config, get_raw_data
+from src.utility.utility import get_exp_conf_path, load_exp_config, load_raw_data, create_exp_dirs
 
 con = config()
 cv = True
@@ -36,13 +36,7 @@ def run_experiment_session(exp_names: list[str]) -> None:
     """
 
     for exp_name in exp_names:
-        p_dir = os.path.join(con.u_config.exp_dir, exp_name)
-        p_c = os.path.join(p_dir, "checkpoints")
-        paths = [p_dir, p_c]
-        for p in paths:
-            if not os.path.isdir(p):
-                os.makedirs(p)
-
+        create_exp_dirs(exp_name)
         run_experiment(exp_name)
 
 
@@ -54,10 +48,7 @@ def run_experiment(exp_name: str) -> None:
     :return: None
     """
 
-    exp_path = get_exp_conf_path(exp_name)
-    print(f"\nRunning experiment located at {exp_path} ...")
-
-    exp_config = load_exp_config(exp_path)
+    exp_config = load_exp_config(exp_name)
 
     classifiers = exp_config["classifiers"]
     cv_method = eval(exp_config["cross_validation"]["class_name"])
@@ -68,9 +59,7 @@ def run_experiment(exp_name: str) -> None:
     for _, c in classifiers.items():
         X, y, col_transformer = get_exp_df(c["type"], exp_config["features"]["is_subset"])
 
-        c_class = eval(c["class_name"])
-        c_params = c["params"]
-        clf = c_class(**c_params)
+        clf = eval(c["class_name"])(**c["params"])
         # append training seed if classifiers has random component
         if "random_state" in clf.get_params().keys():
             clf.set_params(random_state=train_seed)
@@ -83,7 +72,10 @@ def run_experiment(exp_name: str) -> None:
         if cv:
             # cross validate classifier
             clfs, train_scores, test_scores = cross_validate_clf(clone(clf), X, y, cv_method(**cv_method_params))
+
+            # choose first classifier arbitrarily from N folds
             clf = clfs[0]
+
             train_score = np.round(train_scores.mean(), 3)
             test_score = np.round(test_scores.mean(), 3)
         else:
@@ -129,6 +121,7 @@ def find_best_ccp_alpha(clf: BaseDecisionTree, X: pd.DataFrame, y: pd.DataFrame)
         cv_train_scores = cv_result["train_score"]
         mean_test_score = cv_test_scores.mean()
         mean_train_score = cv_train_scores.mean()
+
         alphas.append(ccp_alpha)
         train_scores.append(mean_train_score)
         test_scores.append(mean_test_score)
