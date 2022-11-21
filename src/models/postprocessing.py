@@ -9,7 +9,7 @@ from sklearn.base import clone, BaseEstimator, ClassifierMixin
 from sklearn.compose import ColumnTransformer
 from sklearn.utils import Bunch
 
-from src.models.preprocessing import create_col_transformer, get_exp_dfs
+from src.models.preprocessing import create_col_transformer, get_exp_df
 from src.utility.plotting import plot_feature_importance
 from src.utility.utility import load_exp_models, get_exp_config
 

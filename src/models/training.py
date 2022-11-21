@@ -16,7 +16,7 @@ from sklearn.base import clone, ClassifierMixin
 
 from src.models.postprocessing import get_feature_importance
 from src.models.preprocessing import get_con_features, get_cat_features, create_col_transformer, \
-    apply_preprocessing, get_exp_dfs
+    apply_preprocessing, get_exp_df
 from src.config import config
 import os
 
@@ -65,28 +65,15 @@ def run_experiment(exp_name: str) -> None:
     test_ratio = exp_config["training"]["test_ratio"]
     train_seed = con.m_config.train_seed
 
-    cat_X, con_X, mixed_X, y = get_exp_dfs(exp_config)
-
     for _, c in classifiers.items():
+        X, y, col_transformer = get_exp_df(c["type"], exp_config["features"]["is_subset"])
+
         c_class = eval(c["class_name"])
         c_params = c["params"]
         clf = c_class(**c_params)
-
-        if c["type"] == "categorical":
-            X = cat_X
-        elif c["type"] == "continuous":
-            X = con_X
-        else:
-            X = mixed_X
-
         # append training seed if classifiers has random component
         if "random_state" in clf.get_params().keys():
             clf.set_params(random_state=train_seed)
-
-        # transform data
-        # TODO: put this into preprocessing.py
-        col_transformer = create_col_transformer(X)
-        X = col_transformer.fit_transform(X)
 
         if isinstance(clf, BaseDecisionTree):
             best, alphas, train_scores, test_scores = find_best_ccp_alpha(clf, X, y)

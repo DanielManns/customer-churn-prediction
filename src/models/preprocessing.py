@@ -8,6 +8,7 @@ from src.utility.utility import get_raw_data
 
 con = c.config()
 
+
 def apply_preprocessing(df: pd.DataFrame) -> pd.DataFrame:
     """
     Applies data cleaning as well as feature engineering to given df.
@@ -18,12 +19,13 @@ def apply_preprocessing(df: pd.DataFrame) -> pd.DataFrame:
     return enrich_df(clean_df(df))
 
 
-def get_exp_dfs(exp_config: dict) -> [pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def get_exp_df(data_type: str, is_subset: bool) -> [pd.DataFrame, pd.DataFrame, ColumnTransformer]:
     """
     Returns preprocessed categorical-, continuous-, and mixed DataFrame as well as labels.
 
-    :param exp_config: dict - experimental configuration
-    :return: [pd.DataFrame] - categorical data, continuous data, mixed data, labels
+    :param data_type: str - data_type for DataFrame filtering
+    :param is_subset: bool - subset important variables if True
+    :return: [pd.DataFrame, pd.DataFrame, ColumnTransformer] - X, y, ColumnTransformer
     """
 
     raw_df = get_raw_data()
@@ -32,8 +34,6 @@ def get_exp_dfs(exp_config: dict) -> [pd.DataFrame, pd.DataFrame, pd.DataFrame, 
     y = mixed_df[con.m_config.target_name]
     mixed_df = mixed_df.drop(columns=[con.m_config.target_name])
 
-    is_subset = exp_config["features"]["is_subset"]
-
     # subset important variables
     if is_subset:
         mixed_df = mixed_df.loc[:, con.m_config.im_vars]
@@ -41,7 +41,17 @@ def get_exp_dfs(exp_config: dict) -> [pd.DataFrame, pd.DataFrame, pd.DataFrame, 
     cat_df = mixed_df.drop(columns=get_con_features(mixed_df))
     con_df = mixed_df.drop(columns=get_cat_features(mixed_df))
 
-    return cat_df, con_df, mixed_df, y
+    if data_type == "categorical":
+        X = cat_df
+    elif data_type == "continuous":
+        X = con_df
+    else:
+        X = mixed_df
+
+    col_transformer = create_col_transformer(X)
+    X = col_transformer.fit_transform(X)
+
+    return X, y, col_transformer
 
 
 def clean_df(df: pd.DataFrame) -> pd.DataFrame:

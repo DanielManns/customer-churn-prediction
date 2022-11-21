@@ -19,7 +19,7 @@ def load_exp_models(exp_name: str) -> [[ClassifierMixin], [pd.DataFrame], pd.Dat
 
     exp_path = get_exp_path(exp_name)
     exp_config = get_exp_config(exp_path)
-    cat_X, con_X, mixed_X, y = pre.get_exp_dfs(exp_config)
+    cat_X, con_X, mixed_X, y = pre.get_exp_df(exp_config)
     classifiers = exp_config["classifiers"]
     loaded_clfs = []
     dfs = []
