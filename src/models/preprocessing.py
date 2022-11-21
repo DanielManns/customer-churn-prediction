@@ -9,7 +9,7 @@ from src.utility.utility import load_raw_data
 con = c.config()
 
 
-def get_exp_df(data_type: str, is_subset: bool, input_df: pd.DataFrame) -> [pd.DataFrame, pd.DataFrame, ColumnTransformer]:
+def get_exp_df(data_type: str, is_subset: bool, input_df: pd.DataFrame = None) -> [pd.DataFrame, pd.DataFrame, ColumnTransformer]:
     """
     Returns preprocessed categorical-, continuous-, and mixed DataFrame as well as labels.
 
