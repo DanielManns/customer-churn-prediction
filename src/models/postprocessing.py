@@ -1,21 +1,14 @@
 from sklearn.inspection import permutation_importance
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import BaseCrossValidator, cross_validate
 from sklearn.tree import DecisionTreeClassifier, BaseDecisionTree
 import pandas as pd
-from sklearn.metrics import accuracy_score
-from sklearn.pipeline import Pipeline
-from sklearn.base import clone, BaseEstimator, ClassifierMixin
-from sklearn.compose import ColumnTransformer
-from sklearn.utils import Bunch
+from sklearn.base import ClassifierMixin
 from sklearn.naive_bayes import GaussianNB, CategoricalNB
 from typing import Optional
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
-
-from src.models.preprocessing import create_col_transformer, get_exp_df, transform_df
+from src.models.preprocessing import get_exp_df, transform_df
 from src.utility.plotting import plot_feature_importance
-from src.utility.utility import load_exp_models, load_exp_config, create_pp_dirs, load_clf
+from src.utility.utility import load_exp_config, create_pp_dirs, load_clf
 
 
 def run_postprocessing_session(exp_names: list[str]) -> None:
@@ -137,4 +130,3 @@ def get_permutation_importance(clf: ClassifierMixin, X: pd.DataFrame, y: pd.Data
     )
 
     return perm_importance
-

@@ -20,7 +20,7 @@ from src.models.preprocessing import get_con_features, get_cat_features, create_
 from src.config import config
 import os
 
-from src.utility.plotting import plot_feature_importance, plot_DT, plot_alpha_score_curve
+from src.utility.plotting import plot_feature_importance, plot_dt, plot_alpha_score_curve
 from src.utility.utility import get_exp_conf_path, load_exp_config, load_raw_data, create_exp_dirs, save_clf
 
 con = config()

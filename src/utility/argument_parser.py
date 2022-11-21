@@ -2,6 +2,11 @@ import argparse
 
 
 def parse() -> argparse.Namespace:
+    """
+    Parses arguments.
+    :return: argparse.Namespace - parsed arguments
+    """
+
     parser = argparse.ArgumentParser(description='Predict whether telecommunication customers churned')
     arg = parser.add_argument
     arg("-c", "--classifiers", nargs="+", help="<Required> A minimum of 1 classifiers (sklearn class names)",

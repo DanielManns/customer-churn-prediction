@@ -152,5 +152,3 @@ def get_con_features(df: pd.DataFrame) -> list:
     :return: String [] - List of continuous column names
     """
     return list(df.select_dtypes([np.number]).columns)
-
-
