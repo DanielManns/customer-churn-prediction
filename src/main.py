@@ -19,6 +19,10 @@ def start_postprocessing():
     run_postprocessing_session(c.u_config.experiments)
 
 
+def start_inference():
+    pass
+
+
 # TODO: Implement save utility for models and results folder
 # TODO: Implement Logger
 

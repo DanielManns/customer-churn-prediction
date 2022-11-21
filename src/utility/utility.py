@@ -56,7 +56,8 @@ def get_exp_path(exp_name) -> str:
     :return: str - experiment path
     """
 
-    return os.path.join(con.u_config.exp_dir, exp_name)
+    dir = os.path.join(con.u_config.exp_dir, exp_name)
+    return os.path.join(dir, exp_name + ".yaml")
 
 
 def get_exp_config(exp_path) -> dict:

@@ -13,6 +13,8 @@ from sklearn.compose import ColumnTransformer
 from sklearn.model_selection import BaseCrossValidator, RepeatedKFold
 from sklearn.utils import Bunch
 from sklearn.base import clone, ClassifierMixin
+
+from src.models.postprocessing import get_feature_importance
 from src.models.preprocessing import get_con_features, get_cat_features, create_col_transformer, \
     apply_preprocessing, get_exp_dfs
 from src.config import config
@@ -34,6 +36,13 @@ def run_experiment_session(exp_names: list[str]) -> None:
     """
 
     for exp_name in exp_names:
+        p_dir = os.path.join(con.u_config.exp_dir, exp_name)
+        p_c = os.path.join(p_dir, "checkpoints")
+        paths = [p_dir, p_c]
+        for p in paths:
+            if not os.path.isdir(p):
+                os.makedirs(p)
+
         run_experiment(exp_name)
 
 
@@ -75,13 +84,14 @@ def run_experiment(exp_name: str) -> None:
             clf.set_params(random_state=train_seed)
 
         # transform data
+        # TODO: put this into preprocessing.py
         col_transformer = create_col_transformer(X)
         X = col_transformer.fit_transform(X)
 
         if isinstance(clf, BaseDecisionTree):
             best, alphas, train_scores, test_scores = find_best_ccp_alpha(clf, X, y)
             clf.set_params(ccp_alpha=best[0])
-            # plot_alpha_score_curve(train_scores, scores, alphas)
+            # plot_alpha_score_curve(train_scores, test_scores, alphas)
 
         if cv:
             # cross validate classifier
@@ -98,10 +108,11 @@ def run_experiment(exp_name: str) -> None:
         print(f"Test accuracy score of {clf.__class__.__name__}: {test_score} ± {np.round(test_scores.std(), 3)}")
 
         if clf.__class__.__name__ in ["DecisionTreeClassifier", "LogisticRegression"]:
-            # feature_importance = get_feature_importance(pipe)
-            # plot_feature_importance(feature_importance, classifier.__class__.__name__)
+            # feature_importance = get_feature_importance(clf, feature_names)
+            # plot_feature_importance(feature_importance, clf.__class__.__name__)
             if isinstance(clf, DecisionTreeClassifier):
-                plot_DT(clf, feature_names=col_transformer.get_feature_names_out(), class_names=["No churn", "Churn"])
+                pass
+                # plot_DT(clf, feature_names=col_transformer.get_feature_names_out(), class_names=["No churn", "Churn"])
         print("\n")
 
 
