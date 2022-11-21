@@ -16,7 +16,7 @@ from sklearn.base import clone, ClassifierMixin
 
 from src.models.postprocessing import get_feature_importance
 from src.models.preprocessing import get_con_features, get_cat_features, create_col_transformer, \
-    apply_preprocessing, get_exp_df
+    apply_preprocessing, get_exp_df, transform_df
 from src.config import config
 import os
 
@@ -57,7 +57,8 @@ def run_experiment(exp_name: str) -> None:
     train_seed = con.m_config.train_seed
 
     for _, c in classifiers.items():
-        X, y, col_transformer = get_exp_df(c["type"], exp_config["features"]["is_subset"])
+        X, y = get_exp_df(c["type"], exp_config["features"]["is_subset"])
+        X, y, col_transformer = transform_df(X, y)
 
         clf = eval(c["class_name"])(**c["params"])
         # append training seed if classifiers has random component

@@ -9,26 +9,20 @@ from src.utility.utility import load_raw_data
 con = c.config()
 
 
-def apply_preprocessing(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Applies data cleaning as well as feature engineering to given df.
-
-    :param df: Pandas DataFrame - raw DataFrame
-    :return: Pandas DataFrame - preprocessed DataFrame
-    """
-    return enrich_df(clean_df(df))
-
-
-def get_exp_df(data_type: str, is_subset: bool) -> [pd.DataFrame, pd.DataFrame, ColumnTransformer]:
+def get_exp_df(data_type: str, is_subset: bool, input_df: pd.DataFrame) -> [pd.DataFrame, pd.DataFrame, ColumnTransformer]:
     """
     Returns preprocessed categorical-, continuous-, and mixed DataFrame as well as labels.
 
     :param data_type: str - data_type for DataFrame filtering
     :param is_subset: bool - subset important variables if True
+    :param input_df: pd.DataFrame - Optional input in case of inference, load train data if None
     :return: [pd.DataFrame, pd.DataFrame, ColumnTransformer] - X, y, ColumnTransformer
     """
 
-    raw_df = load_raw_data()
+    if not input_df:
+        raw_df = load_raw_data()
+    else:
+        raw_df = input_df
     mixed_df = apply_preprocessing(raw_df)
 
     y = mixed_df[con.m_config.target_name]
@@ -48,9 +42,22 @@ def get_exp_df(data_type: str, is_subset: bool) -> [pd.DataFrame, pd.DataFrame, 
     else:
         X = mixed_df
 
+    return X, y
+
+
+def apply_preprocessing(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Applies data cleaning as well as feature engineering to given df.
+
+    :param df: Pandas DataFrame - raw DataFrame
+    :return: Pandas DataFrame - preprocessed DataFrame
+    """
+    return enrich_df(clean_df(df))
+
+
+def transform_df(X: pd.DataFrame, y: pd.DataFrame) -> [pd.DataFrame, pd.DataFrame, ColumnTransformer]:
     col_transformer = create_col_transformer(X)
     X = col_transformer.fit_transform(X)
-
     return X, y, col_transformer
 
 
