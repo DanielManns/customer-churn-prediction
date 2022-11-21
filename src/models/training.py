@@ -21,7 +21,7 @@ from src.config import config
 import os
 
 from src.utility.plotting import plot_feature_importance, plot_DT, plot_alpha_score_curve
-from src.utility.utility import get_exp_conf_path, load_exp_config, load_raw_data, create_exp_dirs
+from src.utility.utility import get_exp_conf_path, load_exp_config, load_raw_data, create_exp_dirs, save_clf
 
 con = config()
 cv = True
@@ -93,6 +93,8 @@ def run_experiment(exp_name: str) -> None:
             if isinstance(clf, DecisionTreeClassifier):
                 pass
                 # plot_DT(clf, feature_names=col_transformer.get_feature_names_out(), class_names=["No churn", "Churn"])
+
+        save_clf(exp_name, clf)
         print("\n")
 
 

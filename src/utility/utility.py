@@ -34,7 +34,6 @@ def load_exp_config(exp_name) -> dict:
         return yaml.safe_load(p)
 
 
-
 def load_exp_models(exp_name: str) -> [[ClassifierMixin], [pd.DataFrame], pd.DataFrame]:
     """
     Loads already trained models for given experimental config.
@@ -73,11 +72,11 @@ def save_clf(exp_name: str, clf: ClassifierMixin):
     :return: None
     """
 
-    clf_path = get_clf_path(exp_name, clf)
+    clf_path = get_clf_path(exp_name, clf.__class__.__name__)
     pickle.dump(clf, open(clf_path, "wb"))
 
 
-def load_clf(exp_name: str, clf: ClassifierMixin) -> ClassifierMixin:
+def load_clf(exp_name: str, clf: str) -> ClassifierMixin:
     """
     Loads classifiers latest checkpoint.
 
@@ -86,7 +85,7 @@ def load_clf(exp_name: str, clf: ClassifierMixin) -> ClassifierMixin:
     :return: ClassifierMixin - loaded classifier
     """
 
-    clf_path = get_clf_path(exp_name, clf)
+    clf_path = get_clf_path(exp_name, clf.__class__.__name__)
     return pickle.load(open(clf_path, "rb"))
 
 
@@ -111,6 +110,17 @@ def get_exp_check_dir(exp_name: str) -> str:
     return os.path.join(get_exp_dir(exp_name), "checkpoints")
 
 
+def get_exp_plot_dir(exp_name: str) -> str:
+    """
+    Returns postprocessing directory for given experiment name.
+
+    :param exp_name: str - experiment name
+    :return: str - postprocessing dir
+    """
+
+    return os.path.join(get_exp_dir(exp_name), "plots")
+
+
 def get_exp_conf_path(exp_name) -> str:
     """
     Returns experiment configuration path from given experiment name.
@@ -122,16 +132,16 @@ def get_exp_conf_path(exp_name) -> str:
     return os.path.join(get_exp_dir(exp_name), exp_name + ".yaml")
 
 
-def get_clf_path(exp_name, clf):
+def get_clf_path(exp_name, clf_class_name):
     """
     Returns classifier checkpoint path for given experiment name and classifier.
 
     :param exp_name: str - experiment name
-    :param clf: ClassifierMixin - classifier
+    :param clf_class_name: ClassifierMixin - classifier
     :return: str - checkpoint path
     """
 
-    return os.path.join(get_exp_check_dir(exp_name), clf.__class__.__name__)
+    return os.path.join(get_exp_check_dir(exp_name), clf_class_name + ".sav")
 
 
 def create_exp_dirs(exp_name: str) -> None:
@@ -141,11 +151,26 @@ def create_exp_dirs(exp_name: str) -> None:
     :return: None
     """
 
-    p_dir = os.path.join(con.u_config.exp_dir, exp_name)
-    p_c = os.path.join(p_dir, "checkpoints")
-    paths = [p_dir, p_c]
-    for p in paths:
-        if not os.path.isdir(p):
-            os.makedirs(p)
+    exp_dir = get_exp_dir(exp_name)
+    exp_check_dir = get_exp_check_dir(exp_name)
+    dirs = [exp_dir, exp_check_dir]
+
+    for d in dirs:
+        if not os.path.isdir(d):
+            os.makedirs(d)
+
+
+def create_pp_dirs(exp_name: str) -> None:
+    """
+    Creates required postprocessing directories for a given experiment name.
+    :param exp_name: str - experiment name
+    :return: None
+    """
+
+    plot_dir = get_exp_plot_dir(exp_name)
+    if not os.path.isdir(plot_dir):
+        os.makedirs(plot_dir)
+
+
 
 

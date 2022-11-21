@@ -34,5 +34,5 @@ if __name__ == "__main__":
     # supress warnings
     warnings.warn = warn
 
-    start_training()
-    # start_postprocessing()
+    # start_training()
+    start_postprocessing()

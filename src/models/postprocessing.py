@@ -8,10 +8,14 @@ from sklearn.pipeline import Pipeline
 from sklearn.base import clone, BaseEstimator, ClassifierMixin
 from sklearn.compose import ColumnTransformer
 from sklearn.utils import Bunch
+from sklearn.naive_bayes import GaussianNB, CategoricalNB
+from typing import Optional
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
 
-from src.models.preprocessing import create_col_transformer, get_exp_df
+from src.models.preprocessing import create_col_transformer, get_exp_df, transform_df
 from src.utility.plotting import plot_feature_importance
-from src.utility.utility import load_exp_models, load_exp_config
+from src.utility.utility import load_exp_models, load_exp_config, create_pp_dirs, load_clf
 
 
 def run_postprocessing_session(exp_names: list[str]) -> None:
@@ -23,6 +27,7 @@ def run_postprocessing_session(exp_names: list[str]) -> None:
     """
 
     for exp_name in exp_names:
+        create_pp_dirs(exp_name)
         run_postprocessing(exp_name)
 
 
@@ -34,17 +39,23 @@ def run_postprocessing(exp_name: str) -> None:
     :return: None
     """
 
-    clfs, Xs, y = load_exp_models(exp_name)
+    exp_config = load_exp_config(exp_name)
+    clf_cons = exp_config["classifiers"]
 
-    for clf, X in zip(clfs, Xs):
-        col_transformer = create_col_transformer(X)
-        X = col_transformer.fit_transform(X)
+    for _, clf_con in clf_cons.items():
+        X, y = get_exp_df(clf_con["type"], exp_config["features"]["is_subset"])
+        X, y, col_transformer = transform_df(X, y)
+        clf = eval(clf_con["class_name"])()
+        clf = load_clf(exp_name, clf)
+
         feature_names = col_transformer.get_feature_names_out()
+
         feature_importance = get_feature_importance(clf, feature_names)
-        plot_feature_importance(feature_importance, feature_names)
+        if isinstance(feature_importance, pd.DataFrame):
+            plot_feature_importance(feature_importance, clf.__class__.__name__)
 
 
-def get_feature_importance(clf: ClassifierMixin, feature_names: [str]) -> pd.DataFrame:
+def get_feature_importance(clf: ClassifierMixin, feature_names: [str]) -> Optional[pd.DataFrame]:
     """
     Returns feature importance of already trained classifier (train_test_split).
 
@@ -65,7 +76,8 @@ def get_feature_importance(clf: ClassifierMixin, feature_names: [str]) -> pd.Dat
         im_data = clf.feature_importances_
 
     else:
-        raise ValueError("unexpected estimator")
+        return None
+        # raise ValueError("unexpected estimator")
 
     feature_importance = pd.DataFrame(
             im_data,
@@ -76,7 +88,7 @@ def get_feature_importance(clf: ClassifierMixin, feature_names: [str]) -> pd.Dat
     return feature_importance
 
 
-def get_cv_feature_importance(clfs: [ClassifierMixin], feature_names: [str]) -> pd.DataFrame:
+def get_cv_feature_importance(clfs: [ClassifierMixin], feature_names: [str]) -> Optional[pd.DataFrame]:
     """
     Returns feature importance of already trained classifier (cross validation).
 
@@ -101,7 +113,8 @@ def get_cv_feature_importance(clfs: [ClassifierMixin], feature_names: [str]) -> 
             columns=feature_names,
         )
     else:
-        raise ValueError("unexpected estimator")
+        feature_importance = None
+        # raise ValueError("unexpected estimator")
 
     return feature_importance
 
