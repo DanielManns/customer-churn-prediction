@@ -11,7 +11,7 @@ from sklearn.utils import Bunch
 
 from src.models.preprocessing import create_col_transformer, get_exp_df
 from src.utility.plotting import plot_feature_importance
-from src.utility.utility import load_exp_models, get_exp_config
+from src.utility.utility import load_exp_models, load_exp_config
 
 
 def run_postprocessing_session(exp_names: list[str]) -> None:

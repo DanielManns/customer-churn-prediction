@@ -21,7 +21,7 @@ from src.config import config
 import os
 
 from src.utility.plotting import plot_feature_importance, plot_DT, plot_alpha_score_curve
-from src.utility.utility import get_exp_path, get_exp_config, get_raw_data
+from src.utility.utility import get_exp_conf_path, load_exp_config, get_raw_data
 
 con = config()
 cv = True
@@ -54,10 +54,10 @@ def run_experiment(exp_name: str) -> None:
     :return: None
     """
 
-    exp_path = get_exp_path(exp_name)
+    exp_path = get_exp_conf_path(exp_name)
     print(f"\nRunning experiment located at {exp_path} ...")
 
-    exp_config = get_exp_config(exp_path)
+    exp_config = load_exp_config(exp_path)
 
     classifiers = exp_config["classifiers"]
     cv_method = eval(exp_config["cross_validation"]["class_name"])
