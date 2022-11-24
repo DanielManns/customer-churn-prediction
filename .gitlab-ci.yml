@@ -1,31 +1,72 @@
-# This file is a template, and might need editing before it works on your project.
-# This is a sample GitLab CI/CD configuration file that should run without any modifications.
-# It demonstrates a basic 3 stage CI/CD pipeline. Instead of real tests or scripts,
-# it uses echo commands to simulate the pipeline execution.
-#
-# A pipeline is composed of independent jobs that run scripts, grouped into stages.
-# Stages run in sequential order, but jobs within stages run in parallel.
-#
-# For more information, see: https://docs.gitlab.com/ee/ci/yaml/index.html#stages
-#
-# You can copy and paste this template into a new `.gitlab-ci.yml` file.
-# You should not add this template to an existing `.gitlab-ci.yml` file by using the `include:` keyword.
-#
-# To contribute improvements to CI/CD templates, please follow the Development guide at:
-# https://docs.gitlab.com/ee/development/cicd/templates.html
-# This specific template is located at:
-# https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Getting-Started.gitlab-ci.yml
+image: python:3.10.7
 
-stages:          # List of stages for jobs, and their order of execution
+workflow:
+  rules:
+    -if: $CI_COMMIT_BRANCH
+
+stages:
   - build
   - test
   - deploy
 
-build-job:       # This job runs in the build stage, which runs first.
+.docker:
+  image: docker:stable
+  tags:
+    - docker
+  variables:
+    DOCKER_SVA_REGISTRY: registry.labda.sva.de
+    DOCKER_SVA_PROJECT: ds-challenge-daniel-manns
+    DOCKER_IMAGE: dsc-dmanns
+    DOCKER_BUILDKIT: 1
+    DOCKER_IMAGE_FULL_SPECIFIER: $DOCKER_SVA_REGISTRY/$DOCKER_SVA_PROJECT/$DOCKER_IMAGE
+  before_script:
+    - cat $DOCKER_SVA_PW | docker login -u $DOCKER_SVA_USER --password-stdin $DOCKER_SVA_REGISTRY
+
+.build-docker-image:
+  extends: .docker
   stage: build
+  variables:
+    DOCKER_TAG: $DOCKER_PYTHON_VERSION-$DOCKER_BUILD_TARGET
   script:
-    - echo "Compiling the code..."
-    - echo "Compile complete."
+    - docker pull $DOCKER_IMAGE_FULL_SPECIFIER:$DOCKER_TAG || true
+    - docker pull $DOCKER_IMAGE_FULL_SPECIFIER:DOCKER_TAG || true
+    - docker build --cache-from $DOCKER_IMAGE_FULL_SPECIFIER:$DOCKER_TAG
+                   --tag $DOCKER_IMAGE_FULL_SPECIFIER:$DOCKER_PYTHON_VERSION-builder
+                   --build_ARG BUILDKIT_INLINE_CACHE=1
+                   --build-arg PYTHON_VERSION=$DOCKER_PYTHON_VERSION
+                   --target builder .
+    - docker build --cache-from $DOCKER_IMAGE_FULL_SPECIFIER_$DOCKER_PYTHON_VERSION-builder
+                   --cache-from $DOCKER_IMAGE_FULL_SPECIFIER_$DOCKER_TAG
+                   --tag $DOCKER_IMAGE_FULL_SPECIFIER:$DOCKER_TAG
+                   --build-arg BUILDKIT_INLINE_CACHE=1
+                   --build-arg PYTHON_VERSION=$DOCKER_PYTHON_VERSION
+                   --target $DOCKER_BUILD_TARGET .
+    - docker push $DOCKER_IMAGE_FULL_SPECIFIER:$DOCKER_PYTHON_VERSION-builder
+    - docker push $DOCKER_IMAGE_FULL_SPECIFIER:$DOCKER_TAG
+
+
+# in yanniks version, three times, because three different builders in dockerfile
+
+.build-docker-image-dev:
+  extends: .build-docker-image
+  variables:
+    DOCKER_BUILD_TAREGT: dev
+
+.build-docker-image-prod:
+  extends: .build-docker-image
+  variables:
+    DOCKER_BUILD_TARGET: prod
+
+build-docker-image-dev:
+  extends: .build-docker-image-dev
+  variables:
+    DOCKER_PYTHON_VERSION: "3.10.7"
+
+build-docker-image-prod:
+  extends: .build-docker-image-prod
+  variables:
+    DOCKER_PYTHON_VERSION: "3.10.7"
+
 
 unit-test-job:   # This job runs in the test stage.
   stage: test    # It only starts when the job in the build stage completes successfully.
@@ -41,9 +82,15 @@ lint-test-job:   # This job also runs in the test stage.
     - sleep 10
     - echo "No lint issues found."
 
-deploy-job:      # This job runs in the deploy stage.
-  stage: deploy  # It only runs when *both* jobs in the test stage complete successfully.
-  environment: production
+
+release-docker-image:
+  extends: .docker
+  stage: deploy
+  needs:
+    - build-docker-image-prod
   script:
-    - echo "Deploying application..."
-    - echo "Application successfully deployed."
+    - docker pull $DOCKER_IMAGE_FULL_SPECIFIER:prod
+    - docker tag $DOCKER_IMAGE_FULL_SPECIFIER:prod $DOCKER_IMAGE_FULL_SPECIFIER:latest
+    - docker push $DOCKER_IMAGE_FULL_SPECIFIER:latest
+
+

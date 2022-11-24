@@ -23,7 +23,6 @@ def start_inference():
     pass
 
 
-# TODO: Implement save utility for models and results folder
 # TODO: Implement Logger
 
 
