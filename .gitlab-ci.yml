@@ -32,7 +32,7 @@ stages:
     - docker pull $DOCKER_IMAGE_FULL_SPECIFIER:DOCKER_TAG || true
     - docker build --cache-from $DOCKER_IMAGE_FULL_SPECIFIER:$DOCKER_TAG
                    --tag $DOCKER_IMAGE_FULL_SPECIFIER:$DOCKER_PYTHON_VERSION-builderK
-                   --build_ARG BUILDKIT_INLINE_CACHE=1
+                   --build-arg BUILDKIT_INLINE_CACHE=1
                    --build-arg PYTHON_VERSION=$DOCKER_PYTHON_VERSION
                    --target builder .
     - docker build --cache-from $DOCKER_IMAGE_FULL_SPECIFIER_$DOCKER_PYTHON_VERSION-builder
