@@ -9,7 +9,7 @@ class Configuration:
     target_name: str
     im_vars: list[str]
     classifiers: list[str]
-    train_seed: int
+    iterations: int
 
 
 def config():

@@ -33,16 +33,17 @@ def load_exp_config(exp_name) -> dict:
         return yaml.safe_load(p)
 
 
-def save_clf(exp_name: str, clf: ClassifierMixin):
+def save_clf(exp_name: str, clf: ClassifierMixin, i: int):
     """
     Saves checkpoint of given classifier.
 
     :param exp_name: str - experiment name
     :param clf: ClassifierMixin - classifier
+    :param i: iteration of the same experiment
     :return: None
     """
 
-    clf_path = get_clf_path(exp_name, clf.__class__.__name__)
+    clf_path = get_clf_path(exp_name, clf.__class__.__name__, i)
     pickle.dump(clf, open(clf_path, "wb"))
 
 
@@ -102,16 +103,17 @@ def get_exp_conf_path(exp_name) -> str:
     return os.path.join(get_exp_dir(exp_name), exp_name + ".yaml")
 
 
-def get_clf_path(exp_name, clf_class_name):
+def get_clf_path(exp_name, clf_class_name, i: int):
     """
     Returns classifier checkpoint path for given experiment name and classifier.
 
     :param exp_name: str - experiment name
     :param clf_class_name: ClassifierMixin - classifier
+    :param i: int - iteration of the same experiment
     :return: str - checkpoint path
     """
 
-    return os.path.join(get_exp_check_dir(exp_name), clf_class_name + ".sav")
+    return os.path.join(get_exp_check_dir(exp_name), clf_class_name + "_" + str(i) + ".sav")
 
 
 def create_exp_dirs(exp_name: str) -> None:

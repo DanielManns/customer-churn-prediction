@@ -37,14 +37,19 @@ def run_experiment_session(exp_names: list[str]) -> None:
 
     for exp_name in exp_names:
         create_exp_dirs(exp_name)
-        run_experiment(exp_name)
+        experiment_scores = []
+        for i in range(con.m_config.iterations):
+            experiment_scores.append(run_experiment(exp_name, i))
+        print(np.array(experiment_scores).mean(axis=0))
+        print(np.array(experiment_scores).std(axis=0))
 
 
-def run_experiment(exp_name: str) -> None:
+def run_experiment(exp_name: str, i: int) -> [float]:
     """
     Runs single experiment with given experiment name.
 
     :param exp_name: str - experiment name
+    :param i: int - iteration of the same experiment
     :return: None
     """
 
@@ -54,16 +59,13 @@ def run_experiment(exp_name: str) -> None:
     cv_method = eval(exp_config["cross_validation"]["class_name"])
     cv_method_params = exp_config["cross_validation"]["params"]
     test_ratio = exp_config["training"]["test_ratio"]
-    train_seed = con.m_config.train_seed
 
+    clf_scores = []
     for _, c in classifiers.items():
         X, y = get_exp_df(c["type"], exp_config["features"]["is_subset"])
         X, y, col_transformer = transform_df(X, y)
 
         clf = eval(c["class_name"])(**c["params"])
-        # append training seed if classifiers has random component
-        if "random_state" in clf.get_params().keys():
-            clf.set_params(random_state=train_seed)
 
         if isinstance(clf, BaseDecisionTree):
             best, alphas, train_scores, test_scores = find_best_ccp_alpha(clf, X, y)
@@ -94,8 +96,10 @@ def run_experiment(exp_name: str) -> None:
                 pass
                 # plot_DT(clf, feature_names=col_transformer.get_feature_names_out(), class_names=["No churn", "Churn"])
 
-        save_clf(exp_name, clf)
+        save_clf(exp_name, clf, i)
+        clf_scores.append(test_score)
         print("\n")
+    return clf_scores
 
 
 def find_best_ccp_alpha(clf: BaseDecisionTree, X: pd.DataFrame, y: pd.DataFrame) -> [(float, float), [float], [float], [float]]:

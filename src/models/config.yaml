@@ -19,4 +19,4 @@ classifiers:
       "DecisionTreeClassifier"
   ]
 
-train_seed: 14
+iterations: 2
