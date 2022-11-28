@@ -2,7 +2,7 @@ image: python:3.10.7
 
 workflow:
   rules:
-    -if: $CI_COMMIT_BRANCH
+    - if: $CI_COMMIT_BRANCH
 
 stages:
   - build

@@ -24,6 +24,7 @@ def start_inference():
 
 
 # TODO: Implement Logger
+# TODO: Implement proper results file
 
 
 if __name__ == "__main__":
