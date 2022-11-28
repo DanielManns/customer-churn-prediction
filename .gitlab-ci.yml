@@ -89,7 +89,7 @@ release-docker-image:
   needs:
     - build-docker-image-prod
   script:
-    - docker pull $DOCKER_IMAGE_FULL_SPECIFIER:prod
+    - docker pull $DOCKER_IMAGE_FULL_SPECIFIER:3.10.7-prod
     - docker tag $DOCKER_IMAGE_FULL_SPECIFIER:prod $DOCKER_IMAGE_FULL_SPECIFIER:latest
     - docker push $DOCKER_IMAGE_FULL_SPECIFIER:latest
 
