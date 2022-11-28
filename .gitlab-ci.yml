@@ -15,12 +15,12 @@ stages:
     - docker
   variables:
     DOCKER_SVA_REGISTRY: registry.labda.sva.de
-    DOCKER_SVA_PROJECT: ds-challenge-daniel-manns
+    DOCKER_SVA_PROJECT: dsc-daniel-manns
     DOCKER_IMAGE: dsc-dmanns
     DOCKER_BUILDKIT: 1
     DOCKER_IMAGE_FULL_SPECIFIER: $DOCKER_SVA_REGISTRY/$DOCKER_SVA_PROJECT/$DOCKER_IMAGE
   before_script:
-    - cat $DOCKER_SVA_PW | docker login -u $DOCKER_SVA_USER --password-stdin $DOCKER_SVA_REGISTRY
+    - echo $DOCKER_SVA_PW | docker login -u $DOCKER_SVA_USER --password-stdin $DOCKER_SVA_REGISTRY
 
 .build-docker-image:
   extends: .docker

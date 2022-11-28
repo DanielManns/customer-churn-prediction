@@ -11,24 +11,26 @@ from src.utility.plotting import plot_feature_importance
 from src.utility.utility import load_exp_config, create_pp_dirs, load_clf
 
 
-def run_postprocessing_session(exp_names: list[str]) -> None:
+def run_postprocessing_session(exp_names: list[str], i: int) -> None:
     """
     Starts postprocessing analysis of multiple experiments.
 
     :param exp_names: list[str] - list of experiment names
+    :param i: int - experiment iteration
     :return: None
     """
 
     for exp_name in exp_names:
         create_pp_dirs(exp_name)
-        run_postprocessing(exp_name)
+        run_postprocessing(exp_name, i)
 
 
-def run_postprocessing(exp_name: str) -> None:
+def run_postprocessing(exp_name: str, i: int) -> None:
     """
     Starts postprocessing analysis of a single experiment.
 
     :param exp_name: str - experiment name
+    :param i: int - experiment iteration
     :return: None
     """
 
@@ -39,7 +41,7 @@ def run_postprocessing(exp_name: str) -> None:
         X, y = get_exp_df(clf_con["type"], exp_config["features"]["is_subset"])
         X, y, col_transformer = transform_df(X, y)
         clf = eval(clf_con["class_name"])()
-        clf = load_clf(exp_name, clf)
+        clf = load_clf(exp_name, clf, i)
 
         feature_names = col_transformer.get_feature_names_out()
 

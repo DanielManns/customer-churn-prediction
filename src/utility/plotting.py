@@ -14,10 +14,12 @@ def plot_feature_importance(feature_importance: pd.DataFrame, classifier_name: s
     :return: None
     """
 
-    feature_importance.plot.barh(figsize=(15, 10))
+    ax = feature_importance.plot.barh(figsize=(15, 10))
     plt.title(classifier_name)
     plt.axvline(x=0, color=".5")
-    plt.xlabel("Feature importance")
+    ax.set_xlabel("Feature importance")
+    ax.yaxis.label.set_size("x-small")
+
     plt.subplots_adjust(left=0.3)
     plt.show()
 
@@ -50,7 +52,7 @@ def plot_alpha_score_curve(train_scores: [float], test_scores: [float], ccp_alph
     fig, ax = plt.subplots()
     ax.set_xlabel("alpha")
     ax.set_ylabel("accuracy")
-    ax.set_title("Accuracy vs alpha for training and testing sets")
+    ax.set_title("Accuracy vs. alpha for training and testing sets")
     ax.plot(ccp_alphas, train_scores, marker="o", label="train", drawstyle="steps-post")
     ax.plot(ccp_alphas, test_scores, marker="o", label="test", drawstyle="steps-post")
     ax.legend()

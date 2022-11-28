@@ -16,7 +16,9 @@ def start_training():
 
 
 def start_postprocessing():
-    run_postprocessing_session(c.u_config.experiments)
+    # TODO: pass i from main args
+    i = 0
+    run_postprocessing_session(c.u_config.experiments, i)
 
 
 def start_inference():
@@ -24,7 +26,8 @@ def start_inference():
 
 
 # TODO: Implement Logger
-# TODO: Implement proper results file
+# TODO: Implement proper results file as pd.DataFrame
+# TODO: Von baum zu forest -> Funktion "extract_bins" -> Average bin
 
 
 if __name__ == "__main__":
@@ -34,5 +37,5 @@ if __name__ == "__main__":
     # supress warnings
     warnings.warn = warn
 
-    start_training()
-    # start_postprocessing()
+    # start_training()
+    start_postprocessing()

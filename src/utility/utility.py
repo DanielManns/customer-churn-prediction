@@ -47,16 +47,17 @@ def save_clf(exp_name: str, clf: ClassifierMixin, i: int):
     pickle.dump(clf, open(clf_path, "wb"))
 
 
-def load_clf(exp_name: str, clf: str) -> ClassifierMixin:
+def load_clf(exp_name: str, clf: ClassifierMixin, i: int) -> ClassifierMixin:
     """
     Loads classifiers latest checkpoint.
 
     :param exp_name: str - experiment name
     :param clf: ClassifierMixin - classifier
+    :param i: experiment iteration
     :return: ClassifierMixin - loaded classifier
     """
 
-    clf_path = get_clf_path(exp_name, clf.__class__.__name__)
+    clf_path = get_clf_path(exp_name, clf.__class__.__name__, i)
     return pickle.load(open(clf_path, "rb"))
 
 
