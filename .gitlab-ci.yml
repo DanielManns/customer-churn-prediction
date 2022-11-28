@@ -15,8 +15,8 @@ stages:
     - docker
   variables:
     DOCKER_SVA_REGISTRY: registry.labda.sva.de
-    DOCKER_SVA_PROJECT: dsc-daniel-manns
-    DOCKER_IMAGE: dsc-dmanns
+    DOCKER_SVA_PROJECT: dsc-dmanns
+    DOCKER_IMAGE: churn-prediction
     DOCKER_BUILDKIT: 1
     DOCKER_IMAGE_FULL_SPECIFIER: $DOCKER_SVA_REGISTRY/$DOCKER_SVA_PROJECT/$DOCKER_IMAGE
   before_script:
@@ -31,7 +31,7 @@ stages:
     - docker pull $DOCKER_IMAGE_FULL_SPECIFIER:$DOCKER_TAG || true
     - docker pull $DOCKER_IMAGE_FULL_SPECIFIER:DOCKER_TAG || true
     - docker build --cache-from $DOCKER_IMAGE_FULL_SPECIFIER:$DOCKER_TAG
-                   --tag $DOCKER_IMAGE_FULL_SPECIFIER:$DOCKER_PYTHON_VERSION-builder
+                   --tag $DOCKER_IMAGE_FULL_SPECIFIER:$DOCKER_PYTHON_VERSION-builderK
                    --build_ARG BUILDKIT_INLINE_CACHE=1
                    --build-arg PYTHON_VERSION=$DOCKER_PYTHON_VERSION
                    --target builder .
