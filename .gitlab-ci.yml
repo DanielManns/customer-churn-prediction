@@ -35,8 +35,8 @@ stages:
                    --build-arg BUILDKIT_INLINE_CACHE=1
                    --build-arg PYTHON_VERSION=$DOCKER_PYTHON_VERSION
                    --target builder .
-    - docker build --cache-from $DOCKER_IMAGE_FULL_SPECIFIER_$DOCKER_PYTHON_VERSION-builder
-                   --cache-from $DOCKER_IMAGE_FULL_SPECIFIER_$DOCKER_TAG
+    - docker build --cache-from $DOCKER_IMAGE_FULL_SPECIFIER:$DOCKER_PYTHON_VERSION-builder
+                   --cache-from $DOCKER_IMAGE_FULL_SPECIFIER:$DOCKER_TAG
                    --tag $DOCKER_IMAGE_FULL_SPECIFIER:$DOCKER_TAG
                    --build-arg BUILDKIT_INLINE_CACHE=1
                    --build-arg PYTHON_VERSION=$DOCKER_PYTHON_VERSION
