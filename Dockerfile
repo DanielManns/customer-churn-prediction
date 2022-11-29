@@ -11,7 +11,6 @@ ENV PATH="/venv/bin:${PATH}" \
 FROM base AS builder
 # set DEV environment variable to install development dependencies
 ARG DEV
-# Poetry's version is set here and also in the .gitlab-ci.yml file
 ENV PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 # use virtualenv to leverage multi-stage builds

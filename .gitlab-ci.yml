@@ -25,54 +25,38 @@ stages:
 .build-docker-image:
   extends: .docker
   stage: build
-  variables:
-    DOCKER_TAG: $DOCKER_PYTHON_VERSION-$DOCKER_BUILD_TARGET
   script:
-    - docker pull $DOCKER_IMAGE_FULL_SPECIFIER:$DOCKER_TAG || true
-    - docker pull $DOCKER_IMAGE_FULL_SPECIFIER:$DOCKER_TAG || true
-    - docker build --cache-from $DOCKER_IMAGE_FULL_SPECIFIER:$DOCKER_TAG
-                   --tag $DOCKER_IMAGE_FULL_SPECIFIER:$DOCKER_PYTHON_VERSION-builder
+    - docker pull $DOCKER_IMAGE_FULL_SPECIFIER:builder || true
+    - docker pull $DOCKER_IMAGE_FULL_SPECIFIER:$DOCKER_BUILD_TARGET || true
+    - docker build --cache-from $DOCKER_IMAGE_FULL_SPECIFIER:builder
+                   --tag $DOCKER_IMAGE_FULL_SPECIFIER:builder
                    --build-arg BUILDKIT_INLINE_CACHE=1
-                   --build-arg PYTHON_VERSION=$DOCKER_PYTHON_VERSION
                    --target builder .
-    - docker build --cache-from $DOCKER_IMAGE_FULL_SPECIFIER:$DOCKER_PYTHON_VERSION-builder
-                   --cache-from $DOCKER_IMAGE_FULL_SPECIFIER:$DOCKER_TAG
-                   --tag $DOCKER_IMAGE_FULL_SPECIFIER:$DOCKER_TAG
+    - docker build --cache-from $DOCKER_IMAGE_FULL_SPECIFIER:builder
+                   --cache-from $DOCKER_IMAGE_FULL_SPECIFIER:$DOCKER_BUILD_TARGET
+                   --tag $DOCKER_IMAGE_FULL_SPECIFIER:$DOCKER_BUILD_TARGET
                    --build-arg BUILDKIT_INLINE_CACHE=1
-                   --build-arg PYTHON_VERSION=$DOCKER_PYTHON_VERSION
                    --target $DOCKER_BUILD_TARGET .
-    - docker push $DOCKER_IMAGE_FULL_SPECIFIER:$DOCKER_PYTHON_VERSION-builder
-    - docker push $DOCKER_IMAGE_FULL_SPECIFIER:$DOCKER_TAG
+    - docker push $DOCKER_IMAGE_FULL_SPECIFIER:builder
+    - docker push $DOCKER_IMAGE_FULL_SPECIFIER:$DOCKER_BUILD_TARGET
 
 
-# in yanniks version, three times, because three different builders in dockerfile
-
-.build-docker-image-dev:
+build-docker-image-dev:
   extends: .build-docker-image
   variables:
     DOCKER_BUILD_TARGET: dev
 
-.build-docker-image-prod:
+build-docker-image-prod:
   extends: .build-docker-image
   variables:
     DOCKER_BUILD_TARGET: prod
-
-build-docker-image-dev:
-  extends: .build-docker-image-dev
-  variables:
-    DOCKER_PYTHON_VERSION: "3.10.7"
-
-build-docker-image-prod:
-  extends: .build-docker-image-prod
-  variables:
-    DOCKER_PYTHON_VERSION: "3.10.7"
 
 
 unit-test-job:   # This job runs in the test stage.
   stage: test    # It only starts when the job in the build stage completes successfully.
   script:
     - echo "Running unit tests... This will take about 60 seconds."
-    - sleep 60
+    - sleep 5
     - echo "Code coverage is 90%"
 
 lint-test-job:   # This job also runs in the test stage.
@@ -89,8 +73,8 @@ release-docker-image:
   needs:
     - build-docker-image-prod
   script:
-    - docker pull $DOCKER_IMAGE_FULL_SPECIFIER:3.10.7-prod
-    - docker tag $DOCKER_IMAGE_FULL_SPECIFIER:3.10.7-prod $DOCKER_IMAGE_FULL_SPECIFIER:latest
+    - docker pull $DOCKER_IMAGE_FULL_SPECIFIER:prod
+    - docker tag $DOCKER_IMAGE_FULL_SPECIFIER:prod $DOCKER_IMAGE_FULL_SPECIFIER:latest
     - docker push $DOCKER_IMAGE_FULL_SPECIFIER:latest
 
 
