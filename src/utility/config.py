@@ -10,7 +10,6 @@ class Configuration:
     data_dir: Path
     exp_dir: Path
     train_path: Path
-    experiments: list[str]
 
 
 def config():

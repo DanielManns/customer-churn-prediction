@@ -27,18 +27,19 @@ con = config()
 cv = True
 
 
-def run_experiment_session(exp_names: list[str]) -> None:
+def run_experiment_session(exp_names: list[str], reps: int) -> None:
     """
     Run multiple experiments from given list of experiment names.
 
     :param exp_names: list[str] - experiment names
+    :param reps: int - number of repetitions for each experiment
     :return: None
     """
 
     for exp_name in exp_names:
         create_exp_dirs(exp_name)
         experiment_scores = []
-        for i in range(con.m_config.iterations):
+        for i in range(reps):
             experiment_scores.append(run_experiment(exp_name, i))
         print(np.array(experiment_scores).mean(axis=0))
         print(np.array(experiment_scores).std(axis=0))

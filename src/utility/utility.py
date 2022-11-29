@@ -90,6 +90,7 @@ def get_exp_plot_dir(exp_name: str) -> str:
     :return: str - postprocessing dir
     """
 
+    print(get_exp_dir(exp_name))
     return os.path.join(get_exp_dir(exp_name), "plots")
 
 
@@ -101,7 +102,7 @@ def get_exp_conf_path(exp_name) -> str:
     :return: str - experiment configuration path
     """
 
-    return os.path.join(get_exp_dir(exp_name), exp_name + ".yaml")
+    return os.path.join(con.u_config.exp_dir, exp_name + ".yaml")
 
 
 def get_clf_path(exp_name, clf_class_name, i: int):

@@ -11,26 +11,26 @@ from src.utility.plotting import plot_feature_importance
 from src.utility.utility import load_exp_config, create_pp_dirs, load_clf
 
 
-def run_postprocessing_session(exp_names: list[str], i: int) -> None:
+def run_postprocessing_session(exp_names: list[str], reps: int) -> None:
     """
     Starts postprocessing analysis of multiple experiments.
 
     :param exp_names: list[str] - list of experiment names
-    :param i: int - experiment iteration
+    :param reps: int - experiment iteration
     :return: None
     """
 
     for exp_name in exp_names:
         create_pp_dirs(exp_name)
-        run_postprocessing(exp_name, i)
+        run_postprocessing(exp_name, reps)
 
 
-def run_postprocessing(exp_name: str, i: int) -> None:
+def run_postprocessing(exp_name: str, reps: int) -> None:
     """
     Starts postprocessing analysis of a single experiment.
 
     :param exp_name: str - experiment name
-    :param i: int - experiment iteration
+    :param reps: int - total number of experiment repetitions
     :return: None
     """
 
@@ -41,13 +41,20 @@ def run_postprocessing(exp_name: str, i: int) -> None:
         X, y = get_exp_df(clf_con["type"], exp_config["features"]["is_subset"])
         X, y, col_transformer = transform_df(X, y)
         clf = eval(clf_con["class_name"])()
-        clf = load_clf(exp_name, clf, i)
-
         feature_names = col_transformer.get_feature_names_out()
 
-        feature_importance = get_feature_importance(clf, feature_names)
-        if isinstance(feature_importance, pd.DataFrame):
-            plot_feature_importance(feature_importance, clf.__class__.__name__)
+        if isinstance(clf, LogisticRegression) or isinstance(clf, BaseDecisionTree):
+            rep_f_imps = None
+            for i in range(reps):
+                clf = load_clf(exp_name, clf, i)
+                f_imp = get_feature_importance(clf, feature_names)
+                if rep_f_imps is not None:
+                    rep_f_imps = f_imp
+                else:
+                    rep_f_imps = pd.concat((rep_f_imps, f_imp))
+            plot_feature_importance(rep_f_imps, clf.__class__.__name__)
+        else:
+            continue
 
 
 def get_feature_importance(clf: ClassifierMixin, feature_names: [str]) -> Optional[pd.DataFrame]:
@@ -71,8 +78,7 @@ def get_feature_importance(clf: ClassifierMixin, feature_names: [str]) -> Option
         im_data = clf.feature_importances_
 
     else:
-        return None
-        # raise ValueError("unexpected estimator")
+        raise ValueError("unexpected estimator")
 
     feature_importance = pd.DataFrame(
             im_data,
