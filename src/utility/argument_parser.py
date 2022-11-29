@@ -9,6 +9,7 @@ def parse() -> argparse.Namespace:
 
     parser = argparse.ArgumentParser(description='Predict whether telecommunication customers churned')
     arg = parser.add_argument
+    arg("-r", "--repetitions", type=int, default=2, help="Number of repetitions for each experiment")
     arg("-c", "--classifiers", nargs="+", help="<Required> A minimum of 1 classifiers (sklearn class names)",
         required=False)
     arg("-p", "--classifier_params", nargs="+", help="<Required> A minimum of 1 classifier parameters", required=False)
