@@ -47,5 +47,12 @@ if __name__ == "__main__":
     # supress warnings
     warnings.warn = warn
 
-    # start_training(args.exp_names, args.repetitions)
-    start_postprocessing(args.exp_names, args.repetitions)
+    if args.mode == 0:
+        start_training(args.exp_names, args.repetitions)
+    elif args.mode == 1:
+        start_postprocessing(args.exp_names, args.repetitions)
+    elif args.mode == 2:
+        start_inference()
+    else:
+        raise ValueError("Unexpected project mode! Expected one of [0,1,2]")
+

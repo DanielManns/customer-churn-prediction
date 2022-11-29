@@ -9,6 +9,7 @@ def parse() -> argparse.Namespace:
 
     parser = argparse.ArgumentParser(description='Predict whether telecommunication customers churned')
     arg = parser.add_argument
+    arg("-m", "--mode", type=int, default=0, help="Mode of project (0 = train, 1 = postprocessing)")
     arg("-e", "--exp_names", nargs="+", help="List of experiment name yaml files", required=True)
     arg("-r", "--repetitions", type=int, default=2, help="Number of repetitions for each experiment")
     arg("-v", "--validation", type=str, default="cross_validate", help="Cross validation method (sklearn class name)")

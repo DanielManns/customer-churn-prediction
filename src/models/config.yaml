@@ -18,5 +18,3 @@ classifiers:
       "LogisticRegression",
       "DecisionTreeClassifier"
   ]
-
-iterations: 2
