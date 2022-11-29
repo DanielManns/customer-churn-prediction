@@ -22,9 +22,7 @@ stages:
     DOCKER_BUILDKIT: 1
     DOCKER_IMAGE_FULL_SPECIFIER: $DOCKER_SVA_REGISTRY/$DOCKER_SVA_PROJECT/$DOCKER_IMAGE
   before_script:
-    - echo $DOCKER_SVA_USER
-    - echo $DOCKER_SVA_PW
-    - echo $DOCKER_SVA_PW | docker login -u $DOCKER_SVA_USER --password-stdin $DOCKER_SVA_REGISTRY
+    - cat $DOCKER_SVA_PW | docker login -u $DOCKER_SVA_USER --password-stdin $DOCKER_SVA_REGISTRY
 
 .build-docker-image:
   extends: .docker
