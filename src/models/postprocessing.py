@@ -1,3 +1,5 @@
+from pickle import PickleError
+
 from sklearn.inspection import permutation_importance
 from sklearn.tree import DecisionTreeClassifier, BaseDecisionTree
 import pandas as pd
@@ -46,7 +48,11 @@ def run_postprocessing(exp_name: str, reps: int) -> None:
         if isinstance(clf, LogisticRegression) or isinstance(clf, BaseDecisionTree):
             rep_f_imps = None
             for i in range(reps):
-                clf = load_clf(exp_name, clf, i)
+                try:
+                    clf = load_clf(exp_name, clf, i)
+                except FileNotFoundError:
+                    print(f"Could not load classifier. Consider execution in training mode of experiment '{exp_name}'.")
+                    return
                 f_imp = get_feature_importance(clf, feature_names)
                 if rep_f_imps is not None:
                     rep_f_imps = f_imp
