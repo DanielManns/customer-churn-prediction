@@ -18,6 +18,7 @@ def start_training(exp_names: [str], reps: int) -> None:
     :return: None
     """
     run_experiment_session(exp_names, reps)
+    # test
 
 
 def start_postprocessing(exp_names: [str], reps: int) -> None:
