@@ -4,12 +4,12 @@ from sklearn.compose import ColumnTransformer
 from sklearn.compose import make_column_selector as selector
 import numpy as np
 import config as c
-from src.utility.utility import load_raw_data
+from src.utility.utility import load_dataset
 
 con = c.config()
 
 
-def get_exp_df(data_type: str, is_subset: bool, input_df: pd.DataFrame = None) -> [pd.DataFrame, pd.DataFrame, ColumnTransformer]:
+def get_preprocessed_dataset(data_type: str, is_subset: bool, input_df: pd.DataFrame = None) -> [pd.DataFrame, pd.DataFrame, ColumnTransformer]:
     """
     Returns preprocessed categorical-, continuous-, and mixed DataFrame as well as labels.
 
@@ -20,7 +20,7 @@ def get_exp_df(data_type: str, is_subset: bool, input_df: pd.DataFrame = None) -
     """
 
     if not input_df:
-        raw_df = load_raw_data()
+        raw_df = load_dataset()
     else:
         raw_df = input_df
     mixed_df = apply_preprocessing(raw_df)

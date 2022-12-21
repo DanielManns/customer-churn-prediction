@@ -25,14 +25,14 @@ classifiers:
             splitter: "best"
             max_depth: null
 
-training:
-    test_ratio: 0.2
-
-cross_validation:
-    class_name: "RepeatedKFold"
-    params:
-        n_splits: 5
-        n_repeats: 5
+evaluation:
+  # training:
+  #    test_raio: 0.2
+  cross_validation:
+      class_name: "RepeatedKFold"
+      params:
+          n_splits: 5
+          n_repeats: 5
 
 features:
     is_subset: false

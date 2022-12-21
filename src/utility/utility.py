@@ -8,7 +8,7 @@ import pickle
 con = config.config()
 
 
-def load_raw_data() -> pd.DataFrame:
+def load_dataset() -> pd.DataFrame:
     """
     Returns raw DataFrame.
 

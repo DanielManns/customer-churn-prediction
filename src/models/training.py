@@ -16,15 +16,14 @@ from sklearn.base import clone, ClassifierMixin
 
 from src.models.postprocessing import get_feature_importance
 from src.models.preprocessing import get_con_features, get_cat_features, create_col_transformer, \
-    apply_preprocessing, get_exp_df, transform_df
+    apply_preprocessing, get_preprocessed_dataset, transform_df
 from src.config import config
 import os
 
 from src.utility.plotting import plot_feature_importance, plot_dt, plot_alpha_score_curve
-from src.utility.utility import get_exp_conf_path, load_exp_config, load_raw_data, create_exp_dirs, save_clf
+from src.utility.utility import get_exp_conf_path, load_exp_config, load_dataset, create_exp_dirs, save_clf
 
 con = config()
-cv = True
 
 
 def run_experiment_session(exp_names: list[str], reps: int) -> None:
@@ -55,15 +54,14 @@ def run_experiment(exp_name: str, i: int) -> [float]:
     """
 
     exp_config = load_exp_config(exp_name)
-
     classifiers = exp_config["classifiers"]
-    cv_method = eval(exp_config["cross_validation"]["class_name"])
-    cv_method_params = exp_config["cross_validation"]["params"]
-    test_ratio = exp_config["training"]["test_ratio"]
+    evaluation_method = list(exp_config["evaluation"].keys())[0]
+    features = exp_config["features"]["is_subset"]
 
     clf_scores = []
+
     for _, c in classifiers.items():
-        X, y = get_exp_df(c["type"], exp_config["features"]["is_subset"])
+        X, y = get_preprocessed_dataset(c["type"], features)
         X, y, col_transformer = transform_df(X, y)
 
         clf = eval(c["class_name"])(**c["params"])
@@ -73,29 +71,28 @@ def run_experiment(exp_name: str, i: int) -> [float]:
             clf.set_params(ccp_alpha=best[0])
             # plot_alpha_score_curve(train_scores, test_scores, alphas)
 
-        if cv:
+        if evaluation_method == "cross_validation":
+            cv_method = eval(exp_config["evaluation"]["cross_validation"]["class_name"])
+            cv_method_params = exp_config["evaluation"]["cross_validation"]["params"]
             # cross validate classifier
             clfs, train_scores, test_scores = cross_validate_clf(clone(clf), X, y, cv_method(**cv_method_params))
 
             # choose first classifier arbitrarily from N folds
+            # TODO: change this
             clf = clfs[0]
 
             train_score = np.round(train_scores.mean(), 3)
             test_score = np.round(test_scores.mean(), 3)
-        else:
+        elif evaluation_method == "train_test_split":
             # train classifier with train_test_split
+            test_ratio = exp_config["training"]["test_ratio"]
             clf, train_score, test_score = tts_train_clf(clf, X, y, test_ratio=test_ratio)
             train_scores, test_scores = train_score, test_score
+        else:
+            raise ValueError("Please enter valid evaluation method")
 
         print(f"Train accuracy score of {clf.__class__.__name__}: {train_score} ± {np.round(train_scores.std(), 3)}")
         print(f"Test accuracy score of {clf.__class__.__name__}: {test_score} ± {np.round(test_scores.std(), 3)}")
-
-        if clf.__class__.__name__ in ["DecisionTreeClassifier", "LogisticRegression"]:
-            # feature_importance = get_feature_importance(clf, feature_names)
-            # plot_feature_importance(feature_importance, clf.__class__.__name__)
-            if isinstance(clf, DecisionTreeClassifier):
-                pass
-                # plot_DT(clf, feature_names=col_transformer.get_feature_names_out(), class_names=["No churn", "Churn"])
 
         save_clf(exp_name, clf, i)
         clf_scores.append(test_score)
