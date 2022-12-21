@@ -12,6 +12,7 @@ def warn(*args, **kwargs):
 
 # TODO: Implement Logger
 # TODO: Implement proper results file as pd.DataFrame
+# TODO: Save learned transformation from training data with model such that inference works
 
 
 if __name__ == "__main__":
