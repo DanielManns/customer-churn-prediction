@@ -21,26 +21,28 @@ from src.config import config
 import os
 
 from src.utility.plotting import plot_feature_importance, plot_dt, plot_alpha_score_curve
-from src.utility.utility import get_exp_conf_path, load_exp_config, load_dataset, create_exp_dirs, save_clf
+from src.utility.utility import get_exp_conf_path, load_exp_config, load_train_dataset, create_exp_dirs, save_clf, \
+    load_clf, \
+    load_clfs, load_test_dataset
+from IPython.display import display
 
 con = config()
 
 
 def run_training(exp_config: dict) -> [[ClassifierMixin], [float], [float]]:
     """
-    Runs single experiment with given experiment name.
+    Runs training for given experimental configuration.
 
-    :param exp_config: dict - experiment nconfiguration
-    :return: None
+    :param exp_config: dict - experiment configuration
+    :return:
     """
 
     classifiers = exp_config["classifiers"]
     features = exp_config["features"]["is_subset"]
     cv_method = eval(exp_config["cross_validation"]["class_name"])(**exp_config["cross_validation"]["params"])
-    clfs, train_scores, test_scores = None, None, None
 
     for _, c in classifiers.items():
-        X, y = get_preprocessed_dataset(c["type"], features)
+        X, y = get_preprocessed_dataset(c["type"], features, mode="train")
         X, y, col_transformer = transform_df(X, y)
 
         clf = eval(c["class_name"])(**c["params"])
@@ -64,14 +66,39 @@ def run_training(exp_config: dict) -> [[ClassifierMixin], [float], [float]]:
         print(f"Test accuracy score of {clfs[0].__class__.__name__}: {mean_test_score} ± {std_test_score}")
         print("\n")
 
-    return clfs, train_scores, test_scores
+    return
 
 
-def run_inference():
-    raise NotImplementedError
+def run_inference(exp_config: dict, X: pd.DataFrame = None) -> pd.DataFrame:
+    """
+    Runs inference for given experiment configuration.
+
+    :param exp_config: dict - experiment configuration
+    :param X: pd.DataFrame - Data to run inference on.
+    :return: pd.DataFrame - Predictions
+    """
+
+    classifiers = exp_config["classifiers"]
+    n_splits = exp_config["cross_validation"]["params"]["n_splits"]
+    mean_clf_preds = []
+    std_clf_preds = []
+
+    for _, c in classifiers.items():
+        X, y = get_preprocessed_dataset(c["type"], exp_config["features"]["is_subset"], mode="test")
+        X, y, col_transformer = transform_df(X, y)
+
+        clfs = load_clfs(exp_config["name"], c["class_name"], n_splits)
+        print(X)
+        preds = np.array([clf.predict(X) for clf in clfs])
+        mean_clf_preds.append(preds.mean())
+        std_clf_preds.append(preds.std())
+    stacked = np.stack((mean_clf_preds, std_clf_preds))
+    df = pd.DataFrame(data=stacked, index=["mean", "std"], columns=list(classifiers.keys()))
+    display(df.head())
+    return df
 
 
-def run_gui():
+def run_gui(exp_config):
     raise NotImplementedError
 
 

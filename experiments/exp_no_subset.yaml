@@ -30,7 +30,7 @@ cross_validation:
     class_name: "RepeatedKFold"
     params:
         n_splits: 5
-        n_repeats: 5
+        n_repeats: 1
 
 features:
     is_subset: false

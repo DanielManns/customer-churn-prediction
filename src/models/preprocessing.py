@@ -4,12 +4,13 @@ from sklearn.compose import ColumnTransformer
 from sklearn.compose import make_column_selector as selector
 import numpy as np
 import config as c
-from src.utility.utility import load_dataset
+from src.utility.utility import load_train_dataset, load_test_dataset
+from typing import Optional
 
 con = c.config()
 
 
-def get_preprocessed_dataset(data_type: str, is_subset: bool, input_df: pd.DataFrame = None) -> [pd.DataFrame, pd.DataFrame, ColumnTransformer]:
+def get_preprocessed_dataset(data_type: str, is_subset: bool, mode, input_df: pd.DataFrame = None) -> [pd.DataFrame, Optional[pd.DataFrame]]:
     """
     Returns preprocessed categorical-, continuous-, and mixed DataFrame as well as labels.
 
@@ -18,15 +19,16 @@ def get_preprocessed_dataset(data_type: str, is_subset: bool, input_df: pd.DataF
     :param input_df: pd.DataFrame - Optional input in case of inference, load train data if None
     :return: [pd.DataFrame, pd.DataFrame, ColumnTransformer] - X, y, ColumnTransformer
     """
+    y = None
 
-    if not input_df:
-        raw_df = load_dataset()
+    if mode == "train":
+        raw_df = load_train_dataset()
+        mixed_df = apply_preprocessing(raw_df)
+        y = mixed_df[con.m_config.target_name]
+        mixed_df = mixed_df.drop(columns=[con.m_config.target_name])
     else:
-        raw_df = input_df
-    mixed_df = apply_preprocessing(raw_df)
-
-    y = mixed_df[con.m_config.target_name]
-    mixed_df = mixed_df.drop(columns=[con.m_config.target_name])
+        raw_df = load_test_dataset()
+        mixed_df = apply_preprocessing(raw_df)
 
     # subset important variables
     if is_subset:
@@ -75,15 +77,19 @@ def clean_df(df: pd.DataFrame) -> pd.DataFrame:
     :return: Pandas DataFrame - clean DataFrame
     """
 
-    bool_cols = ["international_plan", "voice_mail_plan", "churn"]
+    if "churn" in df.columns:
+        bool_cols = ["international_plan", "voice_mail_plan", "churn"]
+    else:
+        bool_cols = ["international_plan", "voice_mail_plan"]
     for col in bool_cols:
         df[col] = df[col].replace("yes", True)
         df[col] = df[col].replace("no", False)
 
     df["area_code"] = df["area_code"].apply(lambda x: x.replace("area_code_", ""))
     df = df.astype(
-        {"state": "category", "area_code": "category", "international_plan": "category", "voice_mail_plan": "category",
-         "churn": "category"})
+        {"state": "category", "area_code": "category", "international_plan": "category", "voice_mail_plan": "category"})
+    if "churn" in df.columns:
+        df = df.astype({"churn": "category"})
     return df
 
 

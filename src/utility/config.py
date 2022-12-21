@@ -10,6 +10,7 @@ class Configuration:
     data_dir: Path
     exp_dir: Path
     train_path: Path
+    test_path: Path
 
 
 def config():

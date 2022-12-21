@@ -8,14 +8,23 @@ import pickle
 con = config.config()
 
 
-def load_dataset() -> pd.DataFrame:
+def load_train_dataset() -> pd.DataFrame:
     """
-    Returns raw DataFrame.
+    Returns raw train DataFrame.
 
-    :return: pd.DataFrame - raw data
+    :return: pd.DataFrame - raw train data
     """
 
     return pd.read_csv(con.u_config.train_path)
+
+
+def load_test_dataset() -> pd.DataFrame:
+    """
+    Returns raw test DataFrame.
+
+    :return: pd.DataFrame - raw test data
+    """
+    return pd.read_csv(con.u_config.test_path, index_col="id")
 
 
 def load_exp_config(exp_name) -> dict:
@@ -47,18 +56,32 @@ def save_clf(exp_name: str, clf: ClassifierMixin, i: int):
     pickle.dump(clf, open(clf_path, "wb"))
 
 
-def load_clf(exp_name: str, clf: ClassifierMixin, i: int) -> ClassifierMixin:
+def load_clf(exp_name: str, clf_class: str, i: int) -> ClassifierMixin:
     """
-    Loads classifiers latest checkpoint.
+    Loads classifiers from the latest checkpoint.
 
     :param exp_name: str - experiment name
-    :param clf: ClassifierMixin - classifier
+    :param clf_class: str - classifier class name
     :param i: experiment iteration
     :return: ClassifierMixin - loaded classifier
     """
 
-    clf_path = get_clf_path(exp_name, clf.__class__.__name__, i)
+    clf_path = get_clf_path(exp_name, clf_class, i)
     return pickle.load(open(clf_path, "rb"))
+
+
+def load_clfs(exp_name: str, clf_class: str, n_splits: int) -> [ClassifierMixin]:
+    """
+    Loads the latest checkpoint of all classifiers of given class.
+    :param exp_name: str - experiment name
+    :param clf_class: str - classifier class name
+    :return: [ClassifierMixin] - List of trained classifiers
+    """
+
+    clfs = []
+    for i in range(n_splits):
+        clfs.append(load_clf(exp_name, clf_class, i))
+    return clfs
 
 
 def get_exp_dir(exp_name: str) -> str:
