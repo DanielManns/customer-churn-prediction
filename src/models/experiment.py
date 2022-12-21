@@ -55,8 +55,8 @@ def run_experiment(exp_name: str, i: int) -> [float]:
 
     exp_config = load_exp_config(exp_name)
     classifiers = exp_config["classifiers"]
-    evaluation_method = list(exp_config["evaluation"].keys())[0]
     features = exp_config["features"]["is_subset"]
+    cv_method = eval(exp_config["cross_validation"]["class_name"])(**exp_config["cross_validation"]["params"])
 
     clf_scores = []
 
@@ -71,25 +71,15 @@ def run_experiment(exp_name: str, i: int) -> [float]:
             clf.set_params(ccp_alpha=best[0])
             # plot_alpha_score_curve(train_scores, test_scores, alphas)
 
-        if evaluation_method == "cross_validation":
-            cv_method = eval(exp_config["evaluation"]["cross_validation"]["class_name"])
-            cv_method_params = exp_config["evaluation"]["cross_validation"]["params"]
-            # cross validate classifier
-            clfs, train_scores, test_scores = cross_validate_clf(clone(clf), X, y, cv_method(**cv_method_params))
+        # cross validate classifier
+        clfs, train_scores, test_scores = cross_validate_clf(clone(clf), X, y, cv_method)
 
-            # choose first classifier arbitrarily from N folds
-            # TODO: change this
-            clf = clfs[0]
+        # choose first classifier arbitrarily from N folds
+        # TODO: change this
+        clf = clfs[0]
 
-            train_score = np.round(train_scores.mean(), 3)
-            test_score = np.round(test_scores.mean(), 3)
-        elif evaluation_method == "train_test_split":
-            # train classifier with train_test_split
-            test_ratio = exp_config["training"]["test_ratio"]
-            clf, train_score, test_score = tts_train_clf(clf, X, y, test_ratio=test_ratio)
-            train_scores, test_scores = train_score, test_score
-        else:
-            raise ValueError("Please enter valid evaluation method")
+        train_score = np.round(train_scores.mean(), 3)
+        test_score = np.round(test_scores.mean(), 3)
 
         print(f"Train accuracy score of {clf.__class__.__name__}: {train_score} ± {np.round(train_scores.std(), 3)}")
         print(f"Test accuracy score of {clf.__class__.__name__}: {test_score} ± {np.round(test_scores.std(), 3)}")
@@ -147,40 +137,6 @@ def find_best_ccp_clf(clfs: [ClassifierMixin], test_scores) -> [ClassifierMixin,
 
     idx = np.argmax(np.array(test_scores))
     return clfs[idx], test_scores[idx]
-
-
-def create_pipeline(col_transformer: ColumnTransformer, classifier: ClassifierMixin) -> Pipeline:
-    """
-    Creates a sklearn pipeline from a ColumnTransformer and a classifier.
-
-    :param col_transformer: sklearn.compose ColumnTransformer - ColumnTransformer
-    :param classifier: sklearn.base.BaseEstimator - sklearn classifier
-    :return: sklearn.pipeline Pipeline - Pipeline
-    """
-
-    return Pipeline(steps=[("col_transformer", col_transformer), ("classifier", classifier)])
-
-
-def tts_train_clf(clf: ClassifierMixin, X: pd.DataFrame, y: pd.DataFrame, test_ratio=0.2) -> [ClassifierMixin, float, float]:
-    """
-    Trains a pipeline from given training data and training labels using a classical train-test split method.
-
-    :param clf: sklearn.base.BaseEstimator - Classifier
-    :param X: pd.DataFrame - training data
-    :param y: pd.DataFrame - training labels
-    :param test_ratio: float - ratio of train set size / test set size
-
-    :return: [sklearn.base.ClassifierMixin], float, float] - Trained Classifier, train_score, test_score
-    """
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_ratio, random_state=con.m_config.train_seed)
-
-    clf.fit(X_train, y_train)
-
-    train_score = clf.score(X_train, y_train)
-    test_score = clf.score(X_test, y_test)
-
-    return clf, train_score, test_score
 
 
 def cross_validate_clf(clf: ClassifierMixin, X: pd.DataFrame, y: pd.DataFrame, cv_method: BaseCrossValidator) -> \
