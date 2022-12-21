@@ -1,3 +1,4 @@
+name: "exp_no_subset"
 classifiers:
     ContinuousNaiveBayes:
         class_name: "GaussianNB"

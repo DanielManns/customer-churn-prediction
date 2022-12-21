@@ -26,39 +26,18 @@ from src.utility.utility import get_exp_conf_path, load_exp_config, load_dataset
 con = config()
 
 
-def run_experiment_session(exp_names: list[str], reps: int) -> None:
-    """
-    Run multiple experiments from given list of experiment names.
-
-    :param exp_names: list[str] - experiment names
-    :param reps: int - number of repetitions for each experiment
-    :return: None
-    """
-
-    for exp_name in exp_names:
-        create_exp_dirs(exp_name)
-        experiment_scores = []
-        for i in range(reps):
-            experiment_scores.append(run_experiment(exp_name, i))
-        print(np.array(experiment_scores).mean(axis=0))
-        print(np.array(experiment_scores).std(axis=0))
-
-
-def run_experiment(exp_name: str, i: int) -> [float]:
+def run_training(exp_config: dict) -> [[ClassifierMixin], [float], [float]]:
     """
     Runs single experiment with given experiment name.
 
-    :param exp_name: str - experiment name
-    :param i: int - iteration of the same experiment
+    :param exp_config: dict - experiment nconfiguration
     :return: None
     """
 
-    exp_config = load_exp_config(exp_name)
     classifiers = exp_config["classifiers"]
     features = exp_config["features"]["is_subset"]
     cv_method = eval(exp_config["cross_validation"]["class_name"])(**exp_config["cross_validation"]["params"])
-
-    clf_scores = []
+    clfs, train_scores, test_scores = None, None, None
 
     for _, c in classifiers.items():
         X, y = get_preprocessed_dataset(c["type"], features)
@@ -73,21 +52,27 @@ def run_experiment(exp_name: str, i: int) -> [float]:
 
         # cross validate classifier
         clfs, train_scores, test_scores = cross_validate_clf(clone(clf), X, y, cv_method)
+        [save_clf(exp_config["name"], clf, i) for i, clf in enumerate(clfs)]
 
-        # choose first classifier arbitrarily from N folds
-        # TODO: change this
-        clf = clfs[0]
+        mean_train_score = np.round(train_scores.mean(), 3)
+        mean_test_score = np.round(test_scores.mean(), 3)
 
-        train_score = np.round(train_scores.mean(), 3)
-        test_score = np.round(test_scores.mean(), 3)
+        std_train_score = np.round(train_scores.std(), 3)
+        std_test_score = np.round(test_scores.std(), 3)
 
-        print(f"Train accuracy score of {clf.__class__.__name__}: {train_score} ± {np.round(train_scores.std(), 3)}")
-        print(f"Test accuracy score of {clf.__class__.__name__}: {test_score} ± {np.round(test_scores.std(), 3)}")
-
-        save_clf(exp_name, clf, i)
-        clf_scores.append(test_score)
+        print(f"Train accuracy score of {clfs[0].__class__.__name__}: {mean_train_score} ± {std_train_score}")
+        print(f"Test accuracy score of {clfs[0].__class__.__name__}: {mean_test_score} ± {std_test_score}")
         print("\n")
-    return clf_scores
+
+    return clfs, train_scores, test_scores
+
+
+def run_inference():
+    raise NotImplementedError
+
+
+def run_gui():
+    raise NotImplementedError
 
 
 def find_best_ccp_alpha(clf: BaseDecisionTree, X: pd.DataFrame, y: pd.DataFrame) -> [(float, float), [float], [float], [float]]:
