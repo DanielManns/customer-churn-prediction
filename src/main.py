@@ -2,7 +2,7 @@ from src.models.postprocessing import run_postprocessing, run_postprocessing_ses
 from src.utility.argument_parser import parse
 import warnings
 from src.config import config
-from src.models.training import run_experiment_session
+from src.models.experiment import run_experiment_session
 
 
 def warn(*args, **kwargs):

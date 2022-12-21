@@ -56,6 +56,12 @@ def apply_preprocessing(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def transform_df(X: pd.DataFrame, y: pd.DataFrame) -> [pd.DataFrame, pd.DataFrame, ColumnTransformer]:
+    """
+    Transforms Dataframe and returns ColumnTransformer.
+    :param X: pd.DataFrame - data
+    :param y: pd.DataFrame - labels
+    :return: [pd.DataFrame, pd.DataFrame, ColumnTransformer]
+    """
     col_transformer = create_col_transformer(X)
     X = col_transformer.fit_transform(X)
     return X, y, col_transformer
