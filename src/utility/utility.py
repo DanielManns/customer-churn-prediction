@@ -71,15 +71,16 @@ def save_clfs(exp_name: str, clfs: [ClassifierMixin]):
         save_clf(exp_name, clf, i)
 
 
-def save_scaler(exp_name: str, scaler: ColumnTransformer):
+def save_scaler(exp_name: str, scaler: ColumnTransformer, clf_class: str):
     """
     Saves scaler for given experiment.
 
     :param exp_name: str- experiment name
     :param scaler: ColumnTransformer - scaler
+    :param clf_class: str - classifier name
     :return: None
     """
-    scaler_path = get_scaler_path(exp_name)
+    scaler_path = get_scaler_path(exp_name, clf_class)
     pickle.dump(scaler, open(scaler_path, "wb"))
 
 
@@ -102,6 +103,7 @@ def load_clfs(exp_name: str, clf_class: str, n_splits: int) -> [ClassifierMixin]
     Loads the latest checkpoint of all classifiers of given class.
     :param exp_name: str - experiment name
     :param clf_class: str - classifier class name
+    :param n_splits: int - number of folds for cross validation
     :return: [ClassifierMixin] - List of trained classifiers
     """
 
@@ -111,15 +113,16 @@ def load_clfs(exp_name: str, clf_class: str, n_splits: int) -> [ClassifierMixin]
     return clfs
 
 
-def load_scaler(exp_name: str) -> ColumnTransformer:
+def load_scaler(exp_name: str, clf_class) -> ColumnTransformer:
     """
     Loads the trained scaler for given experiment.
 
     :param exp_name: str - experiment name
+    :param clf_class: str - classifier name
     :return: ColumnTransformer - scaler
     """
 
-    scaler_path = get_scaler_path(exp_name)
+    scaler_path = get_scaler_path(exp_name, clf_class)
     return pickle.load(open(scaler_path, "rb"))
 
 
@@ -180,15 +183,16 @@ def get_clf_path(exp_name, clf_class_name, i: int):
     return os.path.join(get_exp_check_dir(exp_name), clf_class_name + "_" + str(i) + ".sav")
 
 
-def get_scaler_path(exp_name: str):
+def get_scaler_path(exp_name: str, clf_class: str):
     """
     Returns scaler path for given experiment name.
 
     :param exp_name: str - experiment name
+    :param clf_class: str - class name of classifier
     :return: str - scaler path
     """
 
-    return os.path.join(get_exp_check_dir(exp_name), "scaler.sav")
+    return os.path.join(get_exp_check_dir(exp_name), clf_class + "_scaler.sav")
 
 
 def create_exp_dirs(exp_name: str) -> None:

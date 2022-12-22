@@ -55,7 +55,7 @@ def run_training(exp_config: dict) -> [[ClassifierMixin], [float], [float]]:
         # cross validate classifier
         clfs, train_scores, test_scores = cross_validate_clf(clone(clf), X, y, cv_method)
         save_clfs(exp_config["name"], clfs)
-        save_scaler(exp_config["name"], scaler)
+        save_scaler(exp_config["name"], scaler, c["class_name"])
 
         mean_train_score = np.round(train_scores.mean(), 3)
         mean_test_score = np.round(test_scores.mean(), 3)
@@ -86,19 +86,23 @@ def run_inference(exp_config: dict, X: pd.DataFrame = None) -> pd.DataFrame:
 
     for _, c in classifiers.items():
         clfs = load_clfs(exp_config["name"], c["class_name"], n_splits)
-        scaler = load_scaler(exp_config["name"])
+        scaler = load_scaler(exp_config["name"], c["class_name"])
         X, _ = get_preprocessed_dataset(c["type"], exp_config["features"]["is_subset"], mode="test")
 
-        print(X.columns)
-        print(scaler.get_feature_names_out())
         X = scaler.transform(X)
 
         preds = np.array([clf.predict(X) for clf in clfs])
-        mean_clf_preds.append(preds.mean())
-        std_clf_preds.append(preds.std())
-    stacked = np.stack((mean_clf_preds, std_clf_preds))
-    df = pd.DataFrame(data=stacked, index=["mean", "std"], columns=list(classifiers.keys()))
-    display(df.head())
+        mean_clf_preds.append(preds.mean(axis=0))
+        std_clf_preds.append(preds.std(axis=0))
+    # mean_clf_preds.shape = (num_clfs, num_preds)
+    mean_clf_preds = np.array(mean_clf_preds).T
+    std_clf_preds = np.array(std_clf_preds).T
+    data = np.concatenate((mean_clf_preds, std_clf_preds), axis=1)
+    c_names_1 = [clf_name + "_mean_pred" for clf_name in list(classifiers.keys())]
+    c_names_2 = [clf_name + "_std_pred" for clf_name in list(classifiers.keys())]
+    c_names = c_names_1 + c_names_2
+    df = pd.DataFrame(data=data, index=np.arange(X.shape[0]), columns=c_names)
+
     return df
 
 
