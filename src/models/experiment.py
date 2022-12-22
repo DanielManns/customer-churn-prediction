@@ -1,5 +1,7 @@
 import pandas as pd
 import yaml
+import gradio as gr
+import joblib
 from sklearn.base import BaseEstimator
 from sklearn.model_selection import train_test_split, cross_validate, cross_val_score
 from sklearn.pipeline import Pipeline
@@ -13,6 +15,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.model_selection import BaseCrossValidator, RepeatedKFold
 from sklearn.utils import Bunch
 from sklearn.base import clone, ClassifierMixin
+from functools import partial
 
 from src.models.postprocessing import get_feature_importance
 from src.models.preprocessing import get_con_features, get_cat_features, create_col_transformer, \
@@ -88,26 +91,35 @@ def run_inference(exp_config: dict, X: pd.DataFrame = None) -> pd.DataFrame:
         clfs = load_clfs(exp_config["name"], c["class_name"], n_splits)
         scaler = load_scaler(exp_config["name"], c["class_name"])
         X, _ = get_preprocessed_dataset(c["type"], exp_config["features"]["is_subset"], mode="test")
-
         X = scaler.transform(X)
 
         preds = np.array([clf.predict(X) for clf in clfs])
         mean_clf_preds.append(preds.mean(axis=0))
-        std_clf_preds.append(preds.std(axis=0))
+        #std_clf_preds.append(preds.std(axis=0))
     # mean_clf_preds.shape = (num_clfs, num_preds)
     mean_clf_preds = np.array(mean_clf_preds).T
-    std_clf_preds = np.array(std_clf_preds).T
-    data = np.concatenate((mean_clf_preds, std_clf_preds), axis=1)
+    # std_clf_preds = np.array(std_clf_preds).T
+    # data = np.concatenate((mean_clf_preds, std_clf_preds), axis=1)
+    data = mean_clf_preds
     c_names_1 = [clf_name + "_mean_pred" for clf_name in list(classifiers.keys())]
-    c_names_2 = [clf_name + "_std_pred" for clf_name in list(classifiers.keys())]
-    c_names = c_names_1 + c_names_2
-    df = pd.DataFrame(data=data, index=np.arange(X.shape[0]), columns=c_names)
+    #c_names_2 = [clf_name + "_std_pred" for clf_name in list(classifiers.keys())]
+    #c_names = c_names_1 + c_names_2
+    df = pd.DataFrame(data=data, index=np.arange(X.shape[0]), columns=c_names_1)
 
     return df
 
 
 def run_gui(exp_config):
-    raise NotImplementedError
+    df, _ = get_preprocessed_dataset("mixed", exp_config["features"]["is_subset"], mode="test")
+    inputs = [gr.Dataframe(row_count=(1, "dynamic"), col_count=(26, "fixed"), label="Input Data", interactive=True)]
+
+    outputs = [
+        gr.Dataframe(row_count=(1, "dynamic"), col_count=(2, "fixed"), label="Predictions", headers=["Logistic Regression Churn Probability", "DT Churn Probability"])]
+
+    # LR_clfs = load_clfs(exp_config["name"], "LogisticRegression", exp_config["cross_validation"]["n_splits"])
+    # DT_clfs = load_clfs(exp_config["name"], "DecisionTreeClassifier", exp_config["cross_validation"]["n_splits"])
+
+    gr.Interface(fn=partial(run_inference, exp_config), inputs=inputs, outputs=outputs, examples=[[df.head(50)]], examples_per_page=10).launch()
 
 
 def find_best_ccp_alpha(clf: BaseDecisionTree, X: pd.DataFrame, y: pd.DataFrame) -> [(float, float), [float], [float], [float]]:

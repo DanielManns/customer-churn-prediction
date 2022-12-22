@@ -1,16 +1,16 @@
 name: "exp_no_subset"
 classifiers:
-    ContinuousNaiveBayes:
-        class_name: "GaussianNB"
-        type: "continuous"
-        params:
-            priors: null
-
-    CategoricalNaiveBayes:
-        class_name: "CategoricalNB"
-        type: "categorical"
-        params:
-            alpha: 1.0
+#    ContinuousNaiveBayes:
+#        class_name: "GaussianNB"
+#        type: "continuous"
+#        params:
+#            priors: null
+#
+#    CategoricalNaiveBayes:
+#        class_name: "CategoricalNB"
+#        type: "categorical"
+#        params:
+#            alpha: 1.0
 
     LogisticRegression:
         class_name: "LogisticRegression"
