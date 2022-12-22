@@ -57,7 +57,7 @@ def apply_preprocessing(df: pd.DataFrame) -> pd.DataFrame:
     return enrich_df(clean_df(df))
 
 
-def transform_df(X: pd.DataFrame, y: pd.DataFrame) -> [pd.DataFrame, pd.DataFrame, ColumnTransformer]:
+def scale_df(X: pd.DataFrame, y: pd.DataFrame) -> [pd.DataFrame, pd.DataFrame, ColumnTransformer]:
     """
     Transforms Dataframe and returns ColumnTransformer.
     :param X: pd.DataFrame - data

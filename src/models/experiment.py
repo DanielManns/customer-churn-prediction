@@ -16,14 +16,14 @@ from sklearn.base import clone, ClassifierMixin
 
 from src.models.postprocessing import get_feature_importance
 from src.models.preprocessing import get_con_features, get_cat_features, create_col_transformer, \
-    apply_preprocessing, get_preprocessed_dataset, transform_df
+    apply_preprocessing, get_preprocessed_dataset, scale_df
 from src.config import config
 import os
 
 from src.utility.plotting import plot_feature_importance, plot_dt, plot_alpha_score_curve
 from src.utility.utility import get_exp_conf_path, load_exp_config, load_train_dataset, create_exp_dirs, save_clf, \
     load_clf, \
-    load_clfs, load_test_dataset
+    load_clfs, load_test_dataset, save_clfs, save_scaler, load_scaler
 from IPython.display import display
 
 con = config()
@@ -43,7 +43,7 @@ def run_training(exp_config: dict) -> [[ClassifierMixin], [float], [float]]:
 
     for _, c in classifiers.items():
         X, y = get_preprocessed_dataset(c["type"], features, mode="train")
-        X, y, col_transformer = transform_df(X, y)
+        X, y, scaler = scale_df(X, y)
 
         clf = eval(c["class_name"])(**c["params"])
 
@@ -54,7 +54,8 @@ def run_training(exp_config: dict) -> [[ClassifierMixin], [float], [float]]:
 
         # cross validate classifier
         clfs, train_scores, test_scores = cross_validate_clf(clone(clf), X, y, cv_method)
-        [save_clf(exp_config["name"], clf, i) for i, clf in enumerate(clfs)]
+        save_clfs(exp_config["name"], clfs)
+        save_scaler(exp_config["name"], scaler)
 
         mean_train_score = np.round(train_scores.mean(), 3)
         mean_test_score = np.round(test_scores.mean(), 3)
@@ -84,11 +85,14 @@ def run_inference(exp_config: dict, X: pd.DataFrame = None) -> pd.DataFrame:
     std_clf_preds = []
 
     for _, c in classifiers.items():
-        X, y = get_preprocessed_dataset(c["type"], exp_config["features"]["is_subset"], mode="test")
-        X, y, col_transformer = transform_df(X, y)
-
         clfs = load_clfs(exp_config["name"], c["class_name"], n_splits)
-        print(X)
+        scaler = load_scaler(exp_config["name"])
+        X, _ = get_preprocessed_dataset(c["type"], exp_config["features"]["is_subset"], mode="test")
+
+        print(X.columns)
+        print(scaler.get_feature_names_out())
+        X = scaler.transform(X)
+
         preds = np.array([clf.predict(X) for clf in clfs])
         mean_clf_preds.append(preds.mean())
         std_clf_preds.append(preds.std())

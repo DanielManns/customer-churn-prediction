@@ -1,5 +1,7 @@
 import os
 import yaml
+from sklearn.compose import ColumnTransformer
+
 import config
 import pandas as pd
 from sklearn.base import ClassifierMixin
@@ -56,6 +58,31 @@ def save_clf(exp_name: str, clf: ClassifierMixin, i: int):
     pickle.dump(clf, open(clf_path, "wb"))
 
 
+def save_clfs(exp_name: str, clfs: [ClassifierMixin]):
+    """
+    Saves list of classifiers.
+
+    :param exp_name: str - experiment name
+    :param clfs: [ClassifierMixin] - classifier list
+    :return:
+    """
+
+    for i, clf in enumerate(clfs):
+        save_clf(exp_name, clf, i)
+
+
+def save_scaler(exp_name: str, scaler: ColumnTransformer):
+    """
+    Saves scaler for given experiment.
+
+    :param exp_name: str- experiment name
+    :param scaler: ColumnTransformer - scaler
+    :return: None
+    """
+    scaler_path = get_scaler_path(exp_name)
+    pickle.dump(scaler, open(scaler_path, "wb"))
+
+
 def load_clf(exp_name: str, clf_class: str, i: int) -> ClassifierMixin:
     """
     Loads classifiers from the latest checkpoint.
@@ -82,6 +109,18 @@ def load_clfs(exp_name: str, clf_class: str, n_splits: int) -> [ClassifierMixin]
     for i in range(n_splits):
         clfs.append(load_clf(exp_name, clf_class, i))
     return clfs
+
+
+def load_scaler(exp_name: str) -> ColumnTransformer:
+    """
+    Loads the trained scaler for given experiment.
+
+    :param exp_name: str - experiment name
+    :return: ColumnTransformer - scaler
+    """
+
+    scaler_path = get_scaler_path(exp_name)
+    return pickle.load(open(scaler_path, "rb"))
 
 
 def get_exp_dir(exp_name: str) -> str:
@@ -139,6 +178,17 @@ def get_clf_path(exp_name, clf_class_name, i: int):
     """
 
     return os.path.join(get_exp_check_dir(exp_name), clf_class_name + "_" + str(i) + ".sav")
+
+
+def get_scaler_path(exp_name: str):
+    """
+    Returns scaler path for given experiment name.
+
+    :param exp_name: str - experiment name
+    :return: str - scaler path
+    """
+
+    return os.path.join(get_exp_check_dir(exp_name), "scaler.sav")
 
 
 def create_exp_dirs(exp_name: str) -> None:

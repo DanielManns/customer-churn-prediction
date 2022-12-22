@@ -8,7 +8,7 @@ from sklearn.naive_bayes import GaussianNB, CategoricalNB
 from typing import Optional
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
-from src.models.preprocessing import get_preprocessed_dataset, transform_df
+from src.models.preprocessing import get_preprocessed_dataset, scale_df
 from src.utility.plotting import plot_feature_importance
 from src.utility.utility import load_exp_config, create_pp_dirs, load_clf
 
@@ -41,7 +41,7 @@ def run_postprocessing(exp_name: str, reps: int) -> None:
 
     for _, clf_con in clf_cons.items():
         X, y = get_preprocessed_dataset(clf_con["type"], exp_config["features"]["is_subset"])
-        X, y, col_transformer = transform_df(X, y)
+        X, y, col_transformer = scale_df(X, y)
         clf = eval(clf_con["class_name"])()
         feature_names = col_transformer.get_feature_names_out()
 
