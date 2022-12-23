@@ -1,7 +1,7 @@
 from src.backend.utility.argument_parser import parse
 import warnings
 from src.config import config
-from src.backend.models.experiment import run_training, run_inference
+from src.backend.ml.experiment import run_training, predict
 from src.backend.utility.utility import create_exp_dirs, load_exp_config
 from src.frontend.dashboard import run_gui
 
@@ -12,7 +12,6 @@ def warn(*args, **kwargs):
 
 # TODO: Implement Logger
 # TODO: Implement proper results file as pd.DataFrame
-# TODO: Save learned transformation from training data with model such that inference works
 
 
 if __name__ == "__main__":
@@ -30,7 +29,7 @@ if __name__ == "__main__":
     if args.mode == 0:
         run_training(exp_config)
     elif args.mode == 1:
-        run_inference(exp_config)
+        predict(exp_config)
     elif args.mode == 2:
         run_gui(exp_config)
     else:

@@ -86,7 +86,7 @@ def clean_df(df: pd.DataFrame) -> pd.DataFrame:
 
 def enrich_df(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Enriches raw DataFrame with additional features used by models.
+    Enriches raw DataFrame with additional features used by ml.
 
     :param df: Pandas DataFrame - raw DataFrame
     :return: Pandas DataFrame - raw DataFrame with additional features
@@ -113,7 +113,7 @@ def enrich_df(df: pd.DataFrame) -> pd.DataFrame:
 
 def create_scaler(df: pd.DataFrame) -> ColumnTransformer:
     """
-    Create column transformer for sklearn models/pipeline.
+    Create column transformer for sklearn ml/pipeline.
 
     :param df: Pandas DataFrame - clean and enriched DataFrame
     :return: sklearn.compose ColumnTransformer - ColumnTransformer

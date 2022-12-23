@@ -1,6 +1,6 @@
 import src
 from dataclasses import dataclass
-from src.backend.models import config as m_config
+from src.backend.ml import config as m_config
 from src.backend.utility import config as u_config
 
 

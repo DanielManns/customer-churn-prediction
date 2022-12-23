@@ -9,7 +9,7 @@ from sklearn.model_selection import BaseCrossValidator
 from sklearn.base import clone, ClassifierMixin
 from sklearn.model_selection import RepeatedKFold
 
-from src.backend.models.preprocessing import get_preprocessed_dataset, scale_df
+from src.backend.ml.preprocessing import get_preprocessed_dataset, scale_df
 from src.config import config
 
 from src.backend.utility.utility import load_cv_clfs, save_clfs, save_scaler, load_scaler
@@ -81,7 +81,7 @@ def train_clfs(exp_config: dict, X: pd.DataFrame, y: pd.DataFrame):
     return result
 
 
-def run_inference(exp_config: dict, X: pd.DataFrame = None) -> pd.DataFrame:
+def predict(exp_config: dict, X: pd.DataFrame) -> pd.DataFrame:
     """
     Runs inference for given experiment configuration.
 
@@ -93,12 +93,6 @@ def run_inference(exp_config: dict, X: pd.DataFrame = None) -> pd.DataFrame:
     scaler = load_scaler(exp_config["name"])
     X = scaler.transform(X)
 
-    infer_results = infer(exp_config, X)
-
-    return infer_results
-
-
-def infer(exp_config: dict, X: pd.DataFrame):
     classifiers = exp_config["classifiers"]
     n_splits = exp_config["cross_validation"]["params"]["n_splits"]
 
@@ -108,18 +102,13 @@ def infer(exp_config: dict, X: pd.DataFrame):
     for _, c in classifiers.items():
         clfs = load_cv_clfs(exp_config["name"], c["class_name"], n_splits)
 
-        preds = np.array([clf.predict(X) for clf in clfs])
+        preds = np.array([clf.predict_exp(X) for clf in clfs])
         mean_clf_preds.append(preds.mean(axis=0))
         std_clf_preds.append(preds.std(axis=0))
 
     mean_clf_preds = np.array(mean_clf_preds).T
-    std_clf_preds = np.array(std_clf_preds).T
-    # data = np.concatenate((mean_clf_preds, std_clf_preds), axis=1)
-    data = mean_clf_preds
-    c_names_1 = [clf_name + "_mean_pred" for clf_name in list(classifiers.keys())]
-    # c_names_2 = [clf_name + "_std_pred" for clf_name in list(classifiers.keys())]
-    # c_names = c_names_1 + c_names_2
-    df = pd.DataFrame(data=data, index=np.arange(X.shape[0]), columns=c_names_1)
+    clf_names = [clf_name + "_mean_pred" for clf_name in list(classifiers.keys())]
+    df = pd.DataFrame(data=mean_clf_preds, index=np.arange(X.shape[0]), columns=clf_names)
 
     return df
 
