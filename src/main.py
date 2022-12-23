@@ -1,9 +1,8 @@
-from src.models.postprocessing import run_postprocessing, run_postprocessing_session
-from src.utility.argument_parser import parse
+from src.backend.utility.argument_parser import parse
 import warnings
 from src.config import config
-from src.models.experiment import run_training, run_inference, run_gui
-from src.utility.utility import create_exp_dirs, load_exp_config
+from src.backend.models.experiment import run_training, run_inference, run_gui
+from src.backend.utility import create_exp_dirs, load_exp_config
 
 
 def warn(*args, **kwargs):

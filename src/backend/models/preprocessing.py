@@ -4,7 +4,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.compose import make_column_selector as selector
 import numpy as np
 import config as c
-from src.utility.utility import load_train_dataset, load_test_dataset
+from src.backend.utility.utility import load_train_dataset, load_test_dataset
 from typing import Optional
 
 con = c.config()
