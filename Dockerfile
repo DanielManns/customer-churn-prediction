@@ -20,7 +20,7 @@ COPY . .
 
 FROM base AS prod
 COPY --from=builder /venv /venv
-COPY ./src ./src
+COPY app ./src
 COPY ./data ./data
 COPY ./experiments ./experiments
 ENTRYPOINT ["python", "src/main.py"]

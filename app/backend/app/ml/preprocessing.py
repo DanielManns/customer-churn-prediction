@@ -4,7 +4,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.compose import make_column_selector as selector
 import numpy as np
 import config as c
-from src.backend.utility.utility import load_train_dataset, load_test_dataset
+from app.backend.app.utility.utility import load_train_dataset, load_test_dataset
 from typing import Optional
 
 con = c.config()
@@ -24,15 +24,15 @@ def get_preprocessed_dataset(exp_config: dict, train: bool) -> [pd.DataFrame, Op
     if train:
         raw_df = load_train_dataset()
         X = apply_preprocessing(raw_df)
-        y = X[con.m_config.target_name]
-        X = X.drop(columns=[con.m_config.target_name])
+        y = X[con.ml_config.target_name]
+        X = X.drop(columns=[con.ml_config.target_name])
     else:
         raw_df = load_test_dataset()
         X = apply_preprocessing(raw_df)
 
     # subset important variables
     if exp_config["features"]["is_subset"]:
-        X = X.loc[:, con.m_config.im_vars]
+        X = X.loc[:, con.ml_config.im_vars]
 
     return X, y
 
