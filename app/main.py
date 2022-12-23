@@ -3,7 +3,7 @@ import warnings
 from app.config import config
 from app.backend.app.ml.experiment import run_training, predict
 from app.backend.app.utility.utility import create_exp_dirs, load_exp_config
-from app.frontend.dashboard import run_gui
+from app.frontend.app.dashboard import run_gui
 
 
 def warn(*args, **kwargs):

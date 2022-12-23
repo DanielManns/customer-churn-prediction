@@ -18,3 +18,8 @@ classifiers:
       "LogisticRegression",
       "DecisionTreeClassifier"
   ]
+
+exp_dir: "../experiments/"
+data_dir: "../data/"
+train_path: "../data/train.csv"
+test_path: "../data/test.csv"

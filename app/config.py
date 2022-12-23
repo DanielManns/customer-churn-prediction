@@ -1,13 +1,13 @@
 from dataclasses import dataclass
-from app.backend.app.ml import config as ml_config
-from app.backend.app.utility import config as u_config
+from app.backend.app import config as back_config
+from app.frontend.app import config as front_config
 
 
 @dataclass
 class Configuration:
-    ml_config: ml_config.Configuration
-    u_config: u_config.Configuration
+    back_config: back_config.Configuration
+    front_config: front_config.Configuration
 
 
 def config():
-    return Configuration(ml_config=ml_config.config(), u_config=u_config.config())
+    return Configuration(back_config=back_config.config(), front_config=front_config.config())

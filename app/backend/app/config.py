@@ -1,12 +1,15 @@
+import os.path
 from dataclasses import dataclass
-from pathlib import Path
-from yaml import safe_load
 from dacite import from_dict, Config
-import os
+from yaml import safe_load
+from pathlib import Path
 
 
 @dataclass
 class Configuration:
+    target_name: str
+    im_vars: list[str]
+    classifiers: list[str]
     data_dir: Path
     exp_dir: Path
     train_path: Path
