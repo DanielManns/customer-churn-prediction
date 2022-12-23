@@ -1,8 +1,9 @@
 from src.backend.utility.argument_parser import parse
 import warnings
 from src.config import config
-from src.backend.models.experiment import run_training, run_inference, run_gui
-from src.backend.utility import create_exp_dirs, load_exp_config
+from src.backend.models.experiment import run_training, run_inference
+from src.backend.utility.utility import create_exp_dirs, load_exp_config
+from src.frontend.dashboard import run_gui
 
 
 def warn(*args, **kwargs):

@@ -1,16 +1,18 @@
 import pandas as pd
-import gradio as gr
 from sklearn.model_selection import cross_validate
 
 import numpy as np
 from sklearn.tree import BaseDecisionTree
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import BaseCrossValidator
 from sklearn.base import clone, ClassifierMixin
+from sklearn.model_selection import RepeatedKFold
 
 from src.backend.models.preprocessing import get_preprocessed_dataset, scale_df
 from src.config import config
 
-from src.backend.utility.utility import load_clfs, save_clfs, save_scaler, load_scaler
+from src.backend.utility.utility import load_cv_clfs, save_clfs, save_scaler, load_scaler
 
 con = config()
 
@@ -23,25 +25,39 @@ def run_training(exp_config: dict) -> [[ClassifierMixin], [float], [float]]:
     :return:
     """
 
+    X, y = get_preprocessed_dataset(exp_config, train=True)
+    X, y, scaler = scale_df(X, y)
+    save_scaler(exp_config["name"], scaler)
+
+    train_results = train_clfs(exp_config, X, y)
+
+    return train_results
+
+
+def train_clfs(exp_config: dict, X: pd.DataFrame, y: pd.DataFrame):
+    """
+    Trains AND saves all classifiers in given experiment configuration.
+
+    :param exp_config: dict - experiment configuration
+    :param X: pd.DataFrame - train data
+    :param y: pd.DataFrame - labels
+    :return: [dict] - list of training results
+    """
     classifiers = exp_config["classifiers"]
-    features = exp_config["features"]["is_subset"]
     cv_method = eval(exp_config["cross_validation"]["class_name"])(**exp_config["cross_validation"]["params"])
 
-    for _, c in classifiers.items():
-        X, y = get_preprocessed_dataset(c["type"], features, mode="train")
-        X, y, scaler = scale_df(X, y)
+    result = []
 
+    for _, c in classifiers.items():
         clf = eval(c["class_name"])(**c["params"])
 
         if isinstance(clf, BaseDecisionTree):
             best, alphas, train_scores, test_scores = find_best_ccp_alpha(clf, X, y)
             clf.set_params(ccp_alpha=best[0])
-            # plot_alpha_score_curve(train_scores, test_scores, alphas)
 
         # cross validate classifier
         clfs, train_scores, test_scores = cross_validate_clf(clone(clf), X, y, cv_method)
         save_clfs(exp_config["name"], clfs)
-        save_scaler(exp_config["name"], scaler, c["class_name"])
 
         mean_train_score = np.round(train_scores.mean(), 3)
         mean_test_score = np.round(test_scores.mean(), 3)
@@ -51,9 +67,18 @@ def run_training(exp_config: dict) -> [[ClassifierMixin], [float], [float]]:
 
         print(f"Train accuracy score of {clfs[0].__class__.__name__}: {mean_train_score} ± {std_train_score}")
         print(f"Test accuracy score of {clfs[0].__class__.__name__}: {mean_test_score} ± {std_test_score}")
-        print("\n")
 
-    return
+        tmp = {
+            "class_name": c["class_name"],
+            "clfs": clfs,
+            "mean_train_score": mean_train_score,
+            "mean_test_score": mean_test_score,
+            "std_train_score": std_train_score,
+            "std_test_score": std_test_score
+        }
+        result.append(tmp)
+
+    return result
 
 
 def run_inference(exp_config: dict, X: pd.DataFrame = None) -> pd.DataFrame:
@@ -65,28 +90,35 @@ def run_inference(exp_config: dict, X: pd.DataFrame = None) -> pd.DataFrame:
     :return: pd.DataFrame - Predictions
     """
 
+    scaler = load_scaler(exp_config["name"])
+    X = scaler.transform(X)
+
+    infer_results = infer(exp_config, X)
+
+    return infer_results
+
+
+def infer(exp_config: dict, X: pd.DataFrame):
     classifiers = exp_config["classifiers"]
     n_splits = exp_config["cross_validation"]["params"]["n_splits"]
+
     mean_clf_preds = []
     std_clf_preds = []
 
     for _, c in classifiers.items():
-        clfs = load_clfs(exp_config["name"], c["class_name"], n_splits)
-        scaler = load_scaler(exp_config["name"], c["class_name"])
-        X, _ = get_preprocessed_dataset(c["type"], exp_config["features"]["is_subset"], mode="test")
-        X = scaler.transform(X)
+        clfs = load_cv_clfs(exp_config["name"], c["class_name"], n_splits)
 
         preds = np.array([clf.predict(X) for clf in clfs])
         mean_clf_preds.append(preds.mean(axis=0))
-        #std_clf_preds.append(preds.std(axis=0))
-    # mean_clf_preds.shape = (num_clfs, num_preds)
+        std_clf_preds.append(preds.std(axis=0))
+
     mean_clf_preds = np.array(mean_clf_preds).T
-    # std_clf_preds = np.array(std_clf_preds).T
+    std_clf_preds = np.array(std_clf_preds).T
     # data = np.concatenate((mean_clf_preds, std_clf_preds), axis=1)
     data = mean_clf_preds
     c_names_1 = [clf_name + "_mean_pred" for clf_name in list(classifiers.keys())]
-    #c_names_2 = [clf_name + "_std_pred" for clf_name in list(classifiers.keys())]
-    #c_names = c_names_1 + c_names_2
+    # c_names_2 = [clf_name + "_std_pred" for clf_name in list(classifiers.keys())]
+    # c_names = c_names_1 + c_names_2
     df = pd.DataFrame(data=data, index=np.arange(X.shape[0]), columns=c_names_1)
 
     return df

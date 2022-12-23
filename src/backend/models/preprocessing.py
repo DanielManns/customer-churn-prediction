@@ -19,7 +19,6 @@ def get_preprocessed_dataset(exp_config: dict, train: bool) -> [pd.DataFrame, Op
     :return: [pd.DataFrame, pd.DataFrame] - X, y
     """
 
-    is_subset = exp_config["is_subset"]
     y = None
 
     if train:
@@ -32,7 +31,7 @@ def get_preprocessed_dataset(exp_config: dict, train: bool) -> [pd.DataFrame, Op
         X = apply_preprocessing(raw_df)
 
     # subset important variables
-    if is_subset:
+    if exp_config["features"]["is_subset"]:
         X = X.loc[:, con.m_config.im_vars]
 
     return X, y

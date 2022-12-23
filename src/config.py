@@ -6,9 +6,9 @@ from src.backend.utility import config as u_config
 
 @dataclass
 class Configuration:
-    m_config: src.backend.models.config.Configuration
-    u_config: src.backend.utility.config.Configuration
+    m_config: m_config.Configuration
+    u_config: u_config.Configuration
 
 
 def config():
-    return Configuration(m_config=m_config(), u_config=u_config())
+    return Configuration(m_config=m_config.config(), u_config=u_config.config())
