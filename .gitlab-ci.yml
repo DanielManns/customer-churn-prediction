@@ -21,7 +21,7 @@ stages:
     DOCKER_IMAGE: churn-prediction-$PROJECT_COMPONENT
     DOCKER_BUILDKIT: 1
     DOCKER_IMAGE_FULL_SPECIFIER: $DOCKER_SVA_REGISTRY/$DOCKER_SVA_PROJECT/$DOCKER_IMAGE
-    DOCKERFILE_PATH: app/$PROJECT_COMPONENT
+    DOCKERFILE_PATH: src/$PROJECT_COMPONENT
   before_script:
     - cat $DOCKER_SVA_PW | docker login -u $DOCKER_SVA_USER --password-stdin $DOCKER_SVA_REGISTRY
 
@@ -98,12 +98,12 @@ unit-test-job:   # This job runs in the test stage.
     - docker tag $DOCKER_IMAGE_FULL_SPECIFIER:prod $DOCKER_IMAGE_FULL_SPECIFIER:latest
     - docker push $DOCKER_IMAGE_FULL_SPECIFIER:latest
 
-release-docker_image-backend:
+release-docker-image-backend:
   extends: .release-docker-image
   variables:
     PROJECT_COMPONENT: backend
 
-release-docker_image-frontend:
+release-docker-image-frontend:
   extends: .release-docker-image
   variables:
     PROJECT_COMPONENT: frontend

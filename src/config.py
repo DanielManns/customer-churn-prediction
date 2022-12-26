@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from src.backend.app import config as back_config
+from src.backend.src import config as back_config
 from src.frontend.src import config as front_config
 
 

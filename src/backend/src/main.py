@@ -1,7 +1,7 @@
 import warnings
 from utility.argument_parser import parse
 from ml.experiment import run_training, predict
-from src.backend.app.utility.utility import create_exp_dirs, load_exp_config
+from src.backend.src.utility.utility import create_exp_dirs, load_exp_config
 
 
 def warn(*args, **kwargs):

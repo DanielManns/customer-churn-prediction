@@ -1,7 +1,7 @@
 import os
 import yaml
 from sklearn.compose import ColumnTransformer
-from src.backend.app.config import BackendConfig
+from src.backend.src.config import BackendConfig
 import pandas as pd
 from sklearn.base import ClassifierMixin
 import pickle

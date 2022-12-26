@@ -4,9 +4,9 @@ import pandas as pd
 from sklearn.base import ClassifierMixin
 from typing import Optional
 from sklearn.linear_model import LogisticRegression
-from src.backend.app.ml.preprocessing import get_preprocessed_dataset, scale_df
-from src.backend.app.utility.plotting import plot_feature_importance
-from src.backend.app.utility.utility import load_exp_config, create_pp_dirs, load_clf
+from src.backend.src.ml.preprocessing import get_preprocessed_dataset, scale_df
+from src.backend.src.utility.plotting import plot_feature_importance
+from src.backend.src.utility.utility import load_exp_config, create_pp_dirs, load_clf
 
 
 def run_postprocessing_session(exp_names: list[str], reps: int) -> None:
