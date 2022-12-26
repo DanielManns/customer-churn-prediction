@@ -18,9 +18,10 @@ stages:
   variables:
     DOCKER_SVA_REGISTRY: registry.labda.sva.de
     DOCKER_SVA_PROJECT: dsc-dmanns
-    DOCKER_IMAGE: churn-prediction
+    DOCKER_IMAGE: churn-prediction-$PROJECT_COMPONENT
     DOCKER_BUILDKIT: 1
     DOCKER_IMAGE_FULL_SPECIFIER: $DOCKER_SVA_REGISTRY/$DOCKER_SVA_PROJECT/$DOCKER_IMAGE
+    DOCKERFILE_PATH: app/$PROJECT_COMPONENT
   before_script:
     - cat $DOCKER_SVA_PW | docker login -u $DOCKER_SVA_USER --password-stdin $DOCKER_SVA_REGISTRY
 
@@ -33,24 +34,38 @@ stages:
     - docker build --cache-from $DOCKER_IMAGE_FULL_SPECIFIER:builder
                    --tag $DOCKER_IMAGE_FULL_SPECIFIER:builder
                    --build-arg BUILDKIT_INLINE_CACHE=1
-                   --target builder .
+                   --target builder $DOCKERFILE_PATH
     - docker build --cache-from $DOCKER_IMAGE_FULL_SPECIFIER:builder
                    --cache-from $DOCKER_IMAGE_FULL_SPECIFIER:$DOCKER_BUILD_TARGET
                    --tag $DOCKER_IMAGE_FULL_SPECIFIER:$DOCKER_BUILD_TARGET
                    --build-arg BUILDKIT_INLINE_CACHE=1
-                   --target $DOCKER_BUILD_TARGET .
+                   --target $DOCKER_BUILD_TARGET $DOCKERFILE_PATH
     - docker push $DOCKER_IMAGE_FULL_SPECIFIER:builder
     - docker push $DOCKER_IMAGE_FULL_SPECIFIER:$DOCKER_BUILD_TARGET
 
-build-docker-image-dev:
+build-docker-image-backend-dev:
   extends: .build-docker-image
   variables:
     DOCKER_BUILD_TARGET: dev
+    PROJECT_COMPONENT: backend
+
+build-docker-image-backend-dev:
+  extends: .build-docker-image
+  variables:
+    DOCKER_BUILD_TARGET: dev
+    PROJECT_COMPONENT: frontend
 
 build-docker-image-prod:
   extends: .build-docker-image
   variables:
     DOCKER_BUILD_TARGET: prod
+    PEOJECT-COMPONENT: backend
+
+build-docker-image-prod:
+  extends: .build-docker-image
+  variables:
+    DOCKER_BUILD_TARGET: prod
+    PROJECT-COMPONENT: frontend
 
 
 ##### TEST #####
@@ -70,16 +85,27 @@ unit-test-job:   # This job runs in the test stage.
 
 
 ##### DEPLOY #####
-release-docker-image:
+.release-docker-image:
   extends: .docker
   stage: deploy
   needs:
-    - build-docker-image-prod
+    - build-docker-image-backend-prod
+    - build-docker-image-frontend-prod
     - lint-test-job
     - unit-test-job
   script:
     - docker pull $DOCKER_IMAGE_FULL_SPECIFIER:prod
     - docker tag $DOCKER_IMAGE_FULL_SPECIFIER:prod $DOCKER_IMAGE_FULL_SPECIFIER:latest
     - docker push $DOCKER_IMAGE_FULL_SPECIFIER:latest
+
+release-docker_image-backend:
+  extends: .release-docker-image
+  variables:
+    PROJECT_COMPONENT: backend
+
+release-docker_image-frontend:
+  extends: .release-docker-image
+  variables:
+    PROJECT_COMPONENT: frontend
 
 

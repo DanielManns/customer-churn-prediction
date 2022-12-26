@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from app.backend.app import config as back_config
-from app.frontend.app import config as front_config
+from src.backend.app import config as back_config
+from src.frontend.src import config as front_config
 
 
 @dataclass

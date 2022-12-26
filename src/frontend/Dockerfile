@@ -18,14 +18,14 @@ COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 COPY . .
 
-FROM base AS prod
-COPY --from=builder /venv /venv
-COPY app ./src
-COPY ./data ./data
-COPY ./experiments ./experiments
-ENTRYPOINT ["python", "src/main.py"]
-
 FROM base AS dev
 COPY --from=builder /venv /venv
 COPY . .
 CMD ["bash"]
+
+FROM base AS prod
+COPY --from=builder /venv /venv
+COPY ./src ./src
+ENTRYPOINT ["python", "src/frontend/src/main.py"]
+
+

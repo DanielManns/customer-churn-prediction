@@ -1,9 +1,8 @@
-from app.backend.app.utility.argument_parser import parse
 import warnings
-from app.config import config
-from app.backend.app.ml.experiment import run_training, predict
-from app.backend.app.utility.utility import create_exp_dirs, load_exp_config
-from app.frontend.app.dashboard import run_gui
+from utility.argument_parser import parse
+from config import config
+from ml.experiment import run_training, predict
+from src.backend.app.utility.utility import create_exp_dirs, load_exp_config
 
 
 def warn(*args, **kwargs):
@@ -29,9 +28,10 @@ if __name__ == "__main__":
     if args.mode == 0:
         run_training(exp_config)
     elif args.mode == 1:
-        predict(exp_config)
-    elif args.mode == 2:
-        run_gui(exp_config)
+        pass
+        # predict(exp_config)
+    # elif args.mode == 2:
+    #     run_gui(exp_config)
     else:
         raise ValueError("Unexpected project mode! Expected one of [0,1,2]")
 

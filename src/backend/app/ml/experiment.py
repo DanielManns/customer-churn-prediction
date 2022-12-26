@@ -9,10 +9,10 @@ from sklearn.model_selection import BaseCrossValidator
 from sklearn.base import clone, ClassifierMixin
 from sklearn.model_selection import RepeatedKFold
 
-from app.backend.app.ml.preprocessing import get_preprocessed_dataset, scale_df
-from app.config import config
+from src.backend.app.ml.preprocessing import get_preprocessed_dataset, scale_df
+from src.config import config
 
-from app.backend.app.utility.utility import load_cv_clfs, save_clfs, save_scaler, load_scaler
+from src.backend.app.utility.utility import load_cv_clfs, save_clfs, save_scaler, load_scaler
 
 con = config()
 
