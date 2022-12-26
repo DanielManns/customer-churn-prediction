@@ -1,0 +1,25 @@
+target_name: "churn"
+
+im_vars:
+  [
+      'state',
+      'international_plan',
+      'voice_mail_plan',
+      'number_vmail_messages',
+      'number_customer_service_calls',
+      'total_reg_minutes',
+      'total_reg_charge'
+  ]
+
+classifiers:
+  [
+      "CategoricalNB",
+      "GaussianNB",
+      "LogisticRegression",
+      "DecisionTreeClassifier"
+  ]
+
+exp_dir: "../experiments/"
+data_dir: "../data/"
+train_path: "../data/train.csv"
+test_path: "../data/test.csv"

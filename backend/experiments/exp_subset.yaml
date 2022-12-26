@@ -1,0 +1,41 @@
+name: "exp_subset"
+classifiers:
+#    ContinuousNaiveBayes:
+#        class_name: "GaussianNB"
+#        type: "continuous"
+#        params:
+#            priors: null
+#
+#    CategoricalNaiveBayes:
+#        class_name: "CategoricalNB"
+#        type: "categorical"
+#        params:
+#            alpha: 1.0
+
+    LogisticRegression:
+        class_name: "LogisticRegression"
+        type: "mixed"
+        params:
+            max_iter: 500
+
+    DecisionTree:
+        class_name: "DecisionTreeClassifier"
+        type: "mixed"
+        params:
+            criterion: "gini"
+            splitter: "best"
+            max_depth: null
+
+cross_validation:
+    class_name: "RepeatedKFold"
+    params:
+        n_splits: 5
+        n_repeats: 5
+
+features:
+    is_subset: true
+
+
+
+
+
