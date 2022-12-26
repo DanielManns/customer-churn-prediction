@@ -1,6 +1,5 @@
 import warnings
 from utility.argument_parser import parse
-from config import config
 from ml.experiment import run_training, predict
 from src.backend.app.utility.utility import create_exp_dirs, load_exp_config
 
@@ -18,7 +17,6 @@ if __name__ == "__main__":
     print(args)
 
     # init
-    c = config()
     create_exp_dirs(args.exp_name)
     exp_config = load_exp_config(args.exp_name)
 

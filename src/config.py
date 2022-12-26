@@ -5,7 +5,7 @@ from src.frontend.src import config as front_config
 
 @dataclass
 class Configuration:
-    back_config: back_config.Configuration
+    back_config: back_config.BackendConfig
     front_config: front_config.Configuration
 
 

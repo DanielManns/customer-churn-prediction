@@ -10,11 +10,10 @@ from sklearn.base import clone, ClassifierMixin
 from sklearn.model_selection import RepeatedKFold
 
 from src.backend.app.ml.preprocessing import get_preprocessed_dataset, scale_df
-from src.config import config
-
+from src.backend.app.config import BackendConfig
 from src.backend.app.utility.utility import load_cv_clfs, save_clfs, save_scaler, load_scaler
 
-con = config()
+conf = BackendConfig.from_yaml()
 
 
 def run_training(exp_config: dict) -> [[ClassifierMixin], [float], [float]]:

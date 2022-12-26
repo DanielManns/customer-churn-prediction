@@ -1,13 +1,12 @@
 import os
 import yaml
 from sklearn.compose import ColumnTransformer
-
-import config
+from src.backend.app.config import BackendConfig
 import pandas as pd
 from sklearn.base import ClassifierMixin
 import pickle
 
-con = config.config()
+conf = BackendConfig.from_yaml()
 
 
 def load_train_dataset() -> pd.DataFrame:
@@ -17,7 +16,7 @@ def load_train_dataset() -> pd.DataFrame:
     :return: pd.DataFrame - raw train data
     """
 
-    return pd.read_csv(con.u_config.train_path)
+    return pd.read_csv(conf.train_path)
 
 
 def load_test_dataset() -> pd.DataFrame:
@@ -26,7 +25,7 @@ def load_test_dataset() -> pd.DataFrame:
 
     :return: pd.DataFrame - raw test data
     """
-    return pd.read_csv(con.u_config.test_path, index_col="id")
+    return pd.read_csv(conf.test_path, index_col="id")
 
 
 def load_exp_config(exp_name) -> dict:
@@ -132,7 +131,7 @@ def get_exp_dir(exp_name: str) -> str:
     :return: str - experiment dir
     """
 
-    return os.path.join(con.u_config.exp_dir, exp_name)
+    return os.path.join(conf.exp_dir, exp_name)
 
 
 def get_exp_check_dir(exp_name: str) -> str:
@@ -165,7 +164,7 @@ def get_exp_conf_path(exp_name) -> str:
     :return: str - experiment configuration path
     """
 
-    return os.path.join(con.u_config.exp_dir, exp_name + ".yaml")
+    return os.path.join(conf.exp_dir, exp_name + ".yaml")
 
 
 def get_clf_path(exp_name, clf_class_name, i: int):
