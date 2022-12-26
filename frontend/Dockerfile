@@ -25,7 +25,7 @@ CMD ["bash"]
 
 FROM base AS prod
 COPY --from=builder /venv /venv
-COPY ./src ./src
+COPY src ./src
 ENTRYPOINT ["python", "src/frontend/src/main.py"]
 
 
