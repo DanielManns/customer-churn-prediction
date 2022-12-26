@@ -10,6 +10,7 @@ def warn(*args, **kwargs):
 
 # TODO: Implement Logger
 # TODO: Implement proper results file as pd.DataFrame
+# TODO: Add docker compose (defines independent build contexts for distinct services)
 
 
 if __name__ == "__main__":
