@@ -16,6 +16,7 @@ RUN python -m venv $VIRTUAL_ENV
 RUN python -m pip install --upgrade pip
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
+EXPOSE 8001
 COPY . .
 
 FROM base AS dev

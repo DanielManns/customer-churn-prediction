@@ -2,6 +2,10 @@ import gradio as gr
 import pandas as pd
 from functools import partial
 
+from frontend.src.config import FrontendConfig
+
+conf = FrontendConfig.from_yaml()
+
 
 def run_gui(exp_config):
     # df, _ = get_preprocessed_dataset("mixed", exp_config["features"]["is_subset"], mode="test")

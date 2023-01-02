@@ -16,7 +16,7 @@ from backend.src.utility.utility import load_cv_clfs, save_clfs, save_scaler, lo
 conf = BackendConfig.from_yaml()
 
 
-def run_training(exp_config: dict) -> [[ClassifierMixin], [float], [float]]:
+def start_training(exp_config: dict) -> [[ClassifierMixin], [float], [float]]:
     """
     Runs training for given experimental configuration.
 

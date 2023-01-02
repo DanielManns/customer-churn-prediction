@@ -1,6 +1,8 @@
 import warnings
+
+from backend.src.api import start_api
 from utility.argument_parser import parse
-from ml.experiment import run_training, predict
+from ml.experiment import start_training, predict
 from backend.src.utility.utility import create_exp_dirs, load_exp_config
 
 
@@ -10,12 +12,10 @@ def warn(*args, **kwargs):
 
 # TODO: Implement Logger
 # TODO: Implement proper results file as pd.DataFrame
-# TODO: Add docker compose (defines independent build contexts for distinct services)
 
 
 if __name__ == "__main__":
     args = parse()
-    print(args)
 
     # init
     create_exp_dirs(args.exp_name)
@@ -25,9 +25,10 @@ if __name__ == "__main__":
     warnings.warn = warn
 
     if args.mode == 0:
-        run_training(exp_config)
+        start_training(exp_config)
+        start_api()
     elif args.mode == 1:
-        pass
+        start_api()
         # predict(exp_config)
     # elif args.mode == 2:
     #     run_gui(exp_config)
