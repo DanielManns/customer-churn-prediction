@@ -6,16 +6,16 @@ from pathlib import Path
 
 
 @dataclass
-class Configuration:
+class FrontendConfig:
     test: str
 
+    @classmethod
+    def from_yaml(cls):
+        with open(os.path.join(os.path.dirname(__file__), "config.yaml")) as p:
+            data = safe_load(p)
 
-def config():
-    with open(os.path.join(os.path.dirname(__file__), "config.yaml")) as p:
-        data = safe_load(p)
+        converters = {
+            Path: Path
+        }
 
-    converters = {
-        Path: Path
-    }
-
-    return from_dict(data_class=Configuration, data=data, config=Config(type_hooks=converters))
+        return from_dict(data_class=FrontendConfig, data=data, config=Config(type_hooks=converters))
