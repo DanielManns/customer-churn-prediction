@@ -21,7 +21,7 @@ stages:
     DOCKER_IMAGE: churn-prediction-$PROJECT_COMPONENT
     DOCKER_BUILDKIT: 1
     DOCKER_IMAGE_FULL_SPECIFIER: $DOCKER_SVA_REGISTRY/$DOCKER_SVA_PROJECT/$DOCKER_IMAGE
-    DOCKERFILE_PATH: src/$PROJECT_COMPONENT
+    DOCKERFILE_PATH: ./$PROJECT_COMPONENT
   before_script:
     - cat $DOCKER_SVA_PW | docker login -u $DOCKER_SVA_USER --password-stdin $DOCKER_SVA_REGISTRY
 
@@ -49,23 +49,23 @@ build-docker-image-backend-dev:
     DOCKER_BUILD_TARGET: dev
     PROJECT_COMPONENT: backend
 
-build-docker-image-backend-dev:
+build-docker-image-backend-prod:
+  extends: .build-docker-image
+  variables:
+    DOCKER_BUILD_TARGET: prod
+    PROJECT_COMPONENT: backend
+
+build-docker-image-frontend-dev:
   extends: .build-docker-image
   variables:
     DOCKER_BUILD_TARGET: dev
     PROJECT_COMPONENT: frontend
 
-build-docker-image-prod:
+build-docker-image-frontend-prod:
   extends: .build-docker-image
   variables:
     DOCKER_BUILD_TARGET: prod
-    PEOJECT-COMPONENT: backend
-
-build-docker-image-prod:
-  extends: .build-docker-image
-  variables:
-    DOCKER_BUILD_TARGET: prod
-    PROJECT-COMPONENT: frontend
+    PROJECT_COMPONENT: frontend
 
 
 ##### TEST #####
