@@ -5,7 +5,7 @@ from sklearn.base import ClassifierMixin
 from typing import Optional
 from sklearn.linear_model import LogisticRegression
 from preprocessing import get_preprocessed_dataset, scale_df
-from plotting import plot_feature_importance
+from frontend.src.frontend.plotting import plot_feature_importance
 from utility import load_exp_config, load_clf
 
 

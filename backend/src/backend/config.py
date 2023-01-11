@@ -10,6 +10,9 @@ class BackendConfig:
     target_name: str
     im_vars: list[str]
     classifiers: list[str]
+    port: 8000
+    host: str
+    reload: bool
 
     @classmethod
     def from_yaml(cls):
