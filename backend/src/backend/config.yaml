@@ -19,7 +19,3 @@ classifiers:
       "DecisionTreeClassifier"
   ]
 
-exp_dir: "./data/experiments/"
-data_dir: "./data/"
-train_path: "./data/train.csv"
-test_path: "./data/test.csv"

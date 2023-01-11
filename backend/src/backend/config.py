@@ -10,10 +10,6 @@ class BackendConfig:
     target_name: str
     im_vars: list[str]
     classifiers: list[str]
-    data_dir: Path
-    exp_dir: Path
-    train_path: Path
-    test_path: Path
 
     @classmethod
     def from_yaml(cls):

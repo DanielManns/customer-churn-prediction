@@ -3,7 +3,8 @@ from importlib.abc import Traversable
 
 import yaml
 from sklearn.compose import ColumnTransformer
-
+import data
+from data import experiments
 from config import BackendConfig
 import pandas as pd
 from sklearn.base import ClassifierMixin
@@ -20,7 +21,7 @@ def load_train_dataset() -> pd.DataFrame:
     :return: pd.DataFrame - raw train data
     """
 
-    return pd.read_csv(conf.train_path)
+    return pd.read_csv(resources.files(data).joinpath("train.csv"))
 
 
 def load_test_dataset() -> pd.DataFrame:
@@ -29,7 +30,7 @@ def load_test_dataset() -> pd.DataFrame:
 
     :return: pd.DataFrame - raw test data
     """
-    return pd.read_csv(conf.test_path, index_col="id")
+    return pd.read_csv(resources.files(data).joinpath("test.csv"), index_col="id")
 
 
 def load_exp_config(exp_name) -> dict:
@@ -135,7 +136,7 @@ def get_exp_dir(exp_name: str) -> Traversable:
     :return: str - experiment dir
     """
 
-    return resources.files("data.experiments").joinpath(exp_name)
+    return resources.files(experiments).joinpath(exp_name)
 
 
 def get_exp_check_dir(exp_name: str) -> Traversable:

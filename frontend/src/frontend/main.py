@@ -1,8 +1,6 @@
 import gradio as gr
-import pandas as pd
-from functools import partial
 
-from frontend.src.config import FrontendConfig
+from frontend.src.frontend.config import FrontendConfig
 
 conf = FrontendConfig.from_yaml()
 
