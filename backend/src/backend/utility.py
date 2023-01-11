@@ -1,10 +1,14 @@
 import os
+from importlib.abc import Traversable
+
 import yaml
 from sklearn.compose import ColumnTransformer
+
 from config import BackendConfig
 import pandas as pd
 from sklearn.base import ClassifierMixin
 import pickle
+from importlib import resources
 
 conf = BackendConfig.from_yaml()
 
@@ -123,7 +127,7 @@ def load_scaler(exp_name: str) -> ColumnTransformer:
     return pickle.load(open(scaler_path, "rb"))
 
 
-def get_exp_dir(exp_name: str) -> str:
+def get_exp_dir(exp_name: str) -> Traversable:
     """
     Returns experiment dit with given experiment name.
 
@@ -131,20 +135,20 @@ def get_exp_dir(exp_name: str) -> str:
     :return: str - experiment dir
     """
 
-    return os.path.join(conf.exp_dir, exp_name)
+    return resources.files("data.experiments").joinpath(exp_name)
 
 
-def get_exp_check_dir(exp_name: str) -> str:
+def get_exp_check_dir(exp_name: str) -> Traversable:
     """
     Returns checkpoint dir for given experiment name.
     :param exp_name: str - experiment name
     :return: str - checkpoint dir
     """
 
-    return os.path.join(get_exp_dir(exp_name), "checkpoints")
+    return get_exp_dir(exp_name).joinpath("checkpoints")
 
 
-def get_exp_plot_dir(exp_name: str) -> str:
+def get_exp_plot_dir(exp_name: str) -> Traversable:
     """
     Returns postprocessing directory for given experiment name.
 
@@ -152,11 +156,10 @@ def get_exp_plot_dir(exp_name: str) -> str:
     :return: str - postprocessing dir
     """
 
-    print(get_exp_dir(exp_name))
-    return os.path.join(get_exp_dir(exp_name), "plots")
+    return get_exp_dir(exp_name).joinpath("plots")
 
 
-def get_exp_conf_path(exp_name) -> str:
+def get_exp_conf_path(exp_name) -> Traversable:
     """
     Returns experiment configuration path from given experiment name.
 
@@ -164,10 +167,10 @@ def get_exp_conf_path(exp_name) -> str:
     :return: str - experiment configuration path
     """
 
-    return os.path.join(conf.exp_dir, exp_name + ".yaml")
+    return get_exp_dir(exp_name).joinpath(exp_name + ".yaml")
 
 
-def get_clf_path(exp_name, clf_class_name, i: int):
+def get_clf_path(exp_name, clf_class_name, i: int) -> Traversable:
     """
     Returns classifier checkpoint path for given experiment name and classifier.
 
@@ -177,10 +180,10 @@ def get_clf_path(exp_name, clf_class_name, i: int):
     :return: str - checkpoint path
     """
 
-    return os.path.join(get_exp_check_dir(exp_name), clf_class_name + "_" + str(i) + ".sav")
+    return get_exp_check_dir(exp_name).joinpath(clf_class_name + "_" + str(i) + ".sav")
 
 
-def get_scaler_path(exp_name: str):
+def get_scaler_path(exp_name: str) -> Traversable:
     """
     Returns scaler path for given experiment name.
 
@@ -188,32 +191,4 @@ def get_scaler_path(exp_name: str):
     :return: str - scaler path
     """
 
-    return os.path.join(get_exp_check_dir(exp_name), "scaler.sav")
-
-
-def create_exp_dirs(exp_name: str) -> None:
-    """
-    Creates required directories for a given experiment name
-    :param exp_name: str - experiment name
-    :return: None
-    """
-
-    exp_dir = get_exp_dir(exp_name)
-    exp_check_dir = get_exp_check_dir(exp_name)
-    dirs = [exp_dir, exp_check_dir]
-
-    for d in dirs:
-        if not os.path.isdir(d):
-            os.makedirs(d)
-
-
-def create_pp_dirs(exp_name: str) -> None:
-    """
-    Creates required postprocessing directories for a given experiment name.
-    :param exp_name: str - experiment name
-    :return: None
-    """
-
-    plot_dir = get_exp_plot_dir(exp_name)
-    if not os.path.isdir(plot_dir):
-        os.makedirs(plot_dir)
+    return get_exp_check_dir(exp_name).joinpath("scaler.sav")

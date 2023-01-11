@@ -3,7 +3,7 @@ import warnings
 from api import start_api
 from argument_parser import parse
 from experiment import start_training
-from utility import create_exp_dirs, load_exp_config
+from utility import load_exp_config
 
 
 def warn(*args, **kwargs):
@@ -18,7 +18,6 @@ if __name__ == "__main__":
     args = parse()
 
     # init
-    create_exp_dirs(args.exp_name)
     exp_config = load_exp_config(args.exp_name)
 
     # supress warnings

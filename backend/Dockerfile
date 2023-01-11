@@ -3,7 +3,7 @@ FROM python:${PYTHON_VERSION}-slim AS base
 
 WORKDIR /app
 ENV PATH="/venv/bin:${PATH}" \
-    VIRTUAL_ENV="/venv" \
+    VIRTUAL_ENV="/venv/" \
     PYTHONFAULTHANDLER=1 \
     PYTHONUNBUFFERED=1
 
@@ -16,7 +16,6 @@ RUN python -m venv $VIRTUAL_ENV
 RUN python -m pip install --upgrade pip
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
-EXPOSE 8000
 COPY . .
 
 FROM base AS dev
