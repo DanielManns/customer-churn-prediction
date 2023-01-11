@@ -10,7 +10,7 @@ class BackendConfig:
     target_name: str
     im_vars: list[str]
     classifiers: list[str]
-    port: 8000
+    port: int
     host: str
     reload: bool
 
