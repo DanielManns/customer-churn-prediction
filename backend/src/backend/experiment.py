@@ -3,15 +3,14 @@ from sklearn.model_selection import cross_validate
 
 import numpy as np
 from sklearn.tree import BaseDecisionTree
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import BaseCrossValidator
 from sklearn.base import clone, ClassifierMixin
 from sklearn.model_selection import RepeatedKFold
-
-from backend.src.ml.preprocessing import get_preprocessed_dataset, scale_df
-from backend.src.config import BackendConfig
-from backend.src.utility.utility import load_cv_clfs, save_clfs, save_scaler, load_scaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from preprocessing import get_preprocessed_dataset, scale_df
+from config import BackendConfig
+from utility import load_cv_clfs, save_clfs, save_scaler, load_scaler
 
 conf = BackendConfig.from_yaml()
 

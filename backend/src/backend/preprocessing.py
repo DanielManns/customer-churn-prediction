@@ -3,8 +3,8 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.compose import ColumnTransformer
 from sklearn.compose import make_column_selector as selector
 import numpy as np
-from backend.src.config import BackendConfig
-from backend.src.utility.utility import load_train_dataset, load_test_dataset
+from config import BackendConfig
+from utility import load_train_dataset, load_test_dataset
 from typing import Optional
 
 conf = BackendConfig.from_yaml()
