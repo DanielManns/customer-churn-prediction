@@ -14,7 +14,7 @@ ENV PIP_NO_CACHE_DIR=1 \
 # use virtualenv to leverage multi-stage builds
 RUN python -m venv $VIRTUAL_ENV
 RUN python -m pip install --upgrade pip
-COPY requirements.txt requirements.txt
+COPY ./requirements.txt ./requirements.txt
 RUN pip install -r requirements.txt
 COPY . .
 
@@ -25,9 +25,8 @@ CMD ["bash"]
 
 FROM base AS prod
 COPY --from=builder /venv /venv
-COPY src ./src
-COPY ./data ./data
-COPY ./experiments ./experiments
-ENTRYPOINT ["python", "src/main.py"]
+COPY . .
+ENTRYPOINT ["python", "src/backend/main.py"]
+CMD ["-m", "0", "-e", "exp_no_subset"]
 
 
