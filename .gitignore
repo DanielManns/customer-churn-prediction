@@ -1,4 +1,5 @@
-/venv/
+backend/venv/
+frontend/venv/
 /.idea/
 /shelf/
 /workspace.xml

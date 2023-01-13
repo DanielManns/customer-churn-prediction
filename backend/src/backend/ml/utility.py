@@ -3,9 +3,9 @@ from importlib.abc import Traversable
 
 import yaml
 from sklearn.compose import ColumnTransformer
-import data
-from data import experiments
-from config import BackendConfig
+import backend.data as data
+from backend.data import experiments
+from backend.config import BackendConfig
 import pandas as pd
 from sklearn.base import ClassifierMixin
 import pickle
@@ -62,7 +62,7 @@ def save_clf(exp_name: str, clf: ClassifierMixin, i: int):
     pickle.dump(clf, open(clf_path, "wb"))
 
 
-def save_clfs(exp_name: str, clfs: [ClassifierMixin]):
+def save_clfs(exp_name: str, clfs: list[ClassifierMixin]):
     """
     Saves list of classifiers.
 
@@ -101,7 +101,7 @@ def load_clf(exp_name: str, clf_class: str, i: int) -> ClassifierMixin:
     return pickle.load(open(clf_path, "rb"))
 
 
-def load_cv_clfs(exp_name: str, clf_class: str, n_splits: int) -> [ClassifierMixin]:
+def load_cv_clfs(exp_name: str, clf_class: str, n_splits: int) -> list[ClassifierMixin]:
     """
     Loads the latest checkpoint of all classifiers of given class.
     :param exp_name: str - experiment name

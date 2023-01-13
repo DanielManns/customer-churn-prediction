@@ -1,9 +1,10 @@
 import warnings
 
-from api import start_api
-from argument_parser import parse
-from experiment import start_training
-from utility import load_exp_config
+
+from backend.api import start_api
+from backend.argument_parser import parse
+from backend.ml.experiment import train_experiment
+from backend.ml.utility import load_exp_config
 
 
 def warn(*args, **kwargs):
@@ -24,7 +25,7 @@ if __name__ == "__main__":
     warnings.warn = warn
 
     if args.mode == 0:
-        start_training(exp_config)
+        train_experiment(exp_config)
         start_api()
     elif args.mode == 1:
         start_api()

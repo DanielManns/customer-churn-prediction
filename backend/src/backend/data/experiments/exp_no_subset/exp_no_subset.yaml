@@ -27,7 +27,6 @@ classifiers:
             max_depth: null
 
 cross_validation:
-    class_name: "RepeatedKFold"
     params:
         n_splits: 5
         n_repeats: 1

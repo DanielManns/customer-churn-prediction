@@ -3,17 +3,18 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.compose import ColumnTransformer
 from sklearn.compose import make_column_selector as selector
 import numpy as np
-from config import BackendConfig
-from utility import load_train_dataset, load_test_dataset
+from backend.config import BackendConfig
+from backend.ml.utility import load_train_dataset, load_test_dataset
 from typing import Optional
 
 conf = BackendConfig.from_yaml()
 
 
-def get_preprocessed_dataset(exp_config: dict, train: bool) -> [pd.DataFrame, Optional[pd.DataFrame]]:
+def get_preprocessed_dataset(exp_config: dict, train: bool) -> list[pd.DataFrame, Optional[pd.DataFrame]]:
     """
     Returns preprocessed categorical-, continuous-, and mixed DataFrame as well as labels.
 
+    :rtype: object
     :param exp_config: dict - experimental configuration
     :param train: bool - whether to load train dataset
     :return: [pd.DataFrame, pd.DataFrame] - X, y
@@ -47,7 +48,7 @@ def apply_preprocessing(df: pd.DataFrame) -> pd.DataFrame:
     return enrich_df(clean_df(df))
 
 
-def scale_df(X: pd.DataFrame, y: pd.DataFrame) -> [pd.DataFrame, pd.DataFrame, ColumnTransformer]:
+def scale_df(X: pd.DataFrame, y: pd.DataFrame) -> list[pd.DataFrame, pd.DataFrame, ColumnTransformer]:
     """
     Transforms Dataframe and returns ColumnTransformer.
 

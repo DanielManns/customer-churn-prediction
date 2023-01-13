@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 import uvicorn
-from config import BackendConfig
+from backend.config import BackendConfig
 
 app = FastAPI()
 conf = BackendConfig.from_yaml()
@@ -19,6 +19,9 @@ def start_api():
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
+
+
+
 
 
 
