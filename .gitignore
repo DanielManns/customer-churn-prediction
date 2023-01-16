@@ -4,3 +4,4 @@ frontend/venv/
 /shelf/
 /workspace.xml
 *.sav
+*__pycache__
