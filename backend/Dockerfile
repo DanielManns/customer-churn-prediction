@@ -26,7 +26,7 @@ CMD ["bash"]
 FROM base AS prod
 COPY --from=builder /venv /venv
 COPY . .
-ENTRYPOINT ["python", "src/backend/main.py"]
+ENTRYPOINT ["python", "src/main.py"]
 CMD ["-m", "0", "-e", "exp_no_subset"]
 
 
