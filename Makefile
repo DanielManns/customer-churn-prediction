@@ -2,7 +2,6 @@ COMPONENT = backend
 DOCKER_BUILD = dev
 VENV = $(COMPONENT)/venv
 PYTHON = $(VENV)/Scripts/python
-PIP = $(VENV)/Scripts/pip.exe
 REQUIREMENTS = $(COMPONENT)/requirements.txt
 ENTRYPOINT = $(COMPONENT)/src/main.py
 WSL = C:\Windows\sysnative\wsl.exe
@@ -13,10 +12,11 @@ run: $(VENV)/Scripts/activate
 venv: $(VENV)/Scripts/activate
 
 $(VENV)/Scripts/activate: $(REQUIREMENTS)
-	Test-Path $(VENV) || python -m venv $(VENV)
+	python -m venv $(VENV)
 	$(PYTHON) -m pip install -U pip
 	$(PYTHON) -m pip install -r $(REQUIREMENTS)
-	$(VENV)/Scripts/activate
+
+#	. $(VENV)/Scripts/activate
 	
 
 run_docker:
@@ -29,8 +29,4 @@ build_docker: $(COMPONENT)/Dockerfile
 	$(WSL) docker build --tag $(COMPONENT):$(DOCKER_BUILD) --target $(DOCKER_BUILD) $(COMPONENT)
 
 clean:
-	rm -rf $(VENV)
-
-test: test/test
-
-test/test: 
+	$(WSL) rm -rf $(VENV)

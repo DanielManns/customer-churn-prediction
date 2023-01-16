@@ -9,7 +9,6 @@ conf = BackendConfig.from_yaml()
 #  1. Receive experiment config from frontend and trigger training
 #  2. Receive example row from frontend, apply preprocessing (clean, enrich, transform), predict and supply result
 #  3. Receive explain request (no data) and supply explanation data for models
-#  4. Add documentation at get("/") to explain different endpoints
 
 
 def start_api():
