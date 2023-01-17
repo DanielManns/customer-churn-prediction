@@ -3,46 +3,35 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.compose import ColumnTransformer
 from sklearn.compose import make_column_selector as selector
 import numpy as np
-import config as c
-from src.utility.utility import load_train_dataset, load_test_dataset
+from backend.config import conf, Features, ImpFeatures
+from backend.ml.utility import load_train_dataset, load_test_dataset
 from typing import Optional
 
-con = c.config()
 
-
-def get_preprocessed_dataset(data_type: str, is_subset: bool, mode, input_df: pd.DataFrame = None) -> [pd.DataFrame, Optional[pd.DataFrame]]:
+def get_preprocessed_dataset(exp_config: dict, train: bool) -> list[pd.DataFrame, Optional[pd.DataFrame]]:
     """
     Returns preprocessed categorical-, continuous-, and mixed DataFrame as well as labels.
 
-    :param data_type: str - data_type for DataFrame filtering
-    :param is_subset: bool - subset important variables if True
-    :param input_df: pd.DataFrame - Optional input in case of inference, load train data if None
-    :return: [pd.DataFrame, pd.DataFrame, ColumnTransformer] - X, y, ColumnTransformer
+    :rtype: object
+    :param exp_config: dict - experimental configuration
+    :param train: bool - whether to load train dataset
+    :return: [pd.DataFrame, pd.DataFrame] - X, y
     """
+
     y = None
 
-    if mode == "train":
+    if train:
         raw_df = load_train_dataset()
-        mixed_df = apply_preprocessing(raw_df)
-        y = mixed_df[con.m_config.target_name]
-        mixed_df = mixed_df.drop(columns=[con.m_config.target_name])
+        X = apply_preprocessing(raw_df)
+        y = X[conf.target_name]
+        X = X.drop(columns=[conf.target_name])
     else:
         raw_df = load_test_dataset()
-        mixed_df = apply_preprocessing(raw_df)
+        X = apply_preprocessing(raw_df)
 
     # subset important variables
-    if is_subset:
-        mixed_df = mixed_df.loc[:, con.m_config.im_vars]
-
-    cat_df = mixed_df.drop(columns=get_con_features(mixed_df))
-    con_df = mixed_df.drop(columns=get_cat_features(mixed_df))
-
-    if data_type == "categorical":
-        X = cat_df
-    elif data_type == "continuous":
-        X = con_df
-    else:
-        X = mixed_df
+    features = get_features(exp_config)
+    X = X.loc[:, features]
 
     return X, y
 
@@ -57,14 +46,15 @@ def apply_preprocessing(df: pd.DataFrame) -> pd.DataFrame:
     return enrich_df(clean_df(df))
 
 
-def scale_df(X: pd.DataFrame, y: pd.DataFrame) -> [pd.DataFrame, pd.DataFrame, ColumnTransformer]:
+def scale_df(X: pd.DataFrame, y: pd.DataFrame) -> list[pd.DataFrame, pd.DataFrame, ColumnTransformer]:
     """
     Transforms Dataframe and returns ColumnTransformer.
+
     :param X: pd.DataFrame - data
     :param y: pd.DataFrame - labels
     :return: [pd.DataFrame, pd.DataFrame, ColumnTransformer]
     """
-    col_transformer = create_col_transformer(X)
+    col_transformer = create_scaler(X)
     X = col_transformer.fit_transform(X)
     return X, y, col_transformer
 
@@ -95,7 +85,7 @@ def clean_df(df: pd.DataFrame) -> pd.DataFrame:
 
 def enrich_df(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Enriches raw DataFrame with additional features used by models.
+    Enriches raw DataFrame with additional features used by ml.
 
     :param df: Pandas DataFrame - raw DataFrame
     :return: Pandas DataFrame - raw DataFrame with additional features
@@ -120,9 +110,9 @@ def enrich_df(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def create_col_transformer(df: pd.DataFrame) -> ColumnTransformer:
+def create_scaler(df: pd.DataFrame) -> ColumnTransformer:
     """
-    Create column transformer for sklearn models/pipeline.
+    Create column transformer for sklearn ml/pipeline.
 
     :param df: Pandas DataFrame - clean and enriched DataFrame
     :return: sklearn.compose ColumnTransformer - ColumnTransformer
@@ -143,6 +133,14 @@ def create_col_transformer(df: pd.DataFrame) -> ColumnTransformer:
     ], verbose_feature_names_out=False)
 
     return col_transformer
+
+
+def get_features(exp_config: dict) -> list:
+    if exp_config["features"]["is_subset"]:
+        features = list(ImpFeatures.__annotations__.keys())
+    else:
+        features = list(Features.__annotations__.keys())
+    return features
 
 
 def get_cat_features(df: pd.DataFrame) -> list:

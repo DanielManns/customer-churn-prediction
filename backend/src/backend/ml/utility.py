@@ -1,13 +1,15 @@
 import os
+from importlib.abc import Traversable
+
 import yaml
 from sklearn.compose import ColumnTransformer
-
-import config
+import backend.data as data
+from backend.data import experiments
+from backend.config import conf
 import pandas as pd
 from sklearn.base import ClassifierMixin
 import pickle
-
-con = config.config()
+from importlib import resources
 
 
 def load_train_dataset() -> pd.DataFrame:
@@ -17,7 +19,7 @@ def load_train_dataset() -> pd.DataFrame:
     :return: pd.DataFrame - raw train data
     """
 
-    return pd.read_csv(con.u_config.train_path)
+    return pd.read_csv(resources.files(data).joinpath("train.csv"))
 
 
 def load_test_dataset() -> pd.DataFrame:
@@ -26,7 +28,7 @@ def load_test_dataset() -> pd.DataFrame:
 
     :return: pd.DataFrame - raw test data
     """
-    return pd.read_csv(con.u_config.test_path, index_col="id")
+    return pd.read_csv(resources.files(data).joinpath("test.csv"), index_col="id")
 
 
 def load_exp_config(exp_name) -> dict:
@@ -58,7 +60,7 @@ def save_clf(exp_name: str, clf: ClassifierMixin, i: int):
     pickle.dump(clf, open(clf_path, "wb"))
 
 
-def save_clfs(exp_name: str, clfs: [ClassifierMixin]):
+def save_clfs(exp_name: str, clfs: list[ClassifierMixin]):
     """
     Saves list of classifiers.
 
@@ -71,16 +73,15 @@ def save_clfs(exp_name: str, clfs: [ClassifierMixin]):
         save_clf(exp_name, clf, i)
 
 
-def save_scaler(exp_name: str, scaler: ColumnTransformer, clf_class: str):
+def save_scaler(exp_name: str, scaler: ColumnTransformer):
     """
     Saves scaler for given experiment.
 
     :param exp_name: str- experiment name
     :param scaler: ColumnTransformer - scaler
-    :param clf_class: str - classifier name
     :return: None
     """
-    scaler_path = get_scaler_path(exp_name, clf_class)
+    scaler_path = get_scaler_path(exp_name)
     pickle.dump(scaler, open(scaler_path, "wb"))
 
 
@@ -98,7 +99,7 @@ def load_clf(exp_name: str, clf_class: str, i: int) -> ClassifierMixin:
     return pickle.load(open(clf_path, "rb"))
 
 
-def load_clfs(exp_name: str, clf_class: str, n_splits: int) -> [ClassifierMixin]:
+def load_cv_clfs(exp_name: str, clf_class: str, n_splits: int) -> list[ClassifierMixin]:
     """
     Loads the latest checkpoint of all classifiers of given class.
     :param exp_name: str - experiment name
@@ -113,20 +114,19 @@ def load_clfs(exp_name: str, clf_class: str, n_splits: int) -> [ClassifierMixin]
     return clfs
 
 
-def load_scaler(exp_name: str, clf_class) -> ColumnTransformer:
+def load_scaler(exp_name: str) -> ColumnTransformer:
     """
     Loads the trained scaler for given experiment.
 
     :param exp_name: str - experiment name
-    :param clf_class: str - classifier name
     :return: ColumnTransformer - scaler
     """
 
-    scaler_path = get_scaler_path(exp_name, clf_class)
+    scaler_path = get_scaler_path(exp_name)
     return pickle.load(open(scaler_path, "rb"))
 
 
-def get_exp_dir(exp_name: str) -> str:
+def get_exp_dir(exp_name: str) -> Traversable:
     """
     Returns experiment dit with given experiment name.
 
@@ -134,20 +134,20 @@ def get_exp_dir(exp_name: str) -> str:
     :return: str - experiment dir
     """
 
-    return os.path.join(con.u_config.exp_dir, exp_name)
+    return resources.files(experiments).joinpath(exp_name)
 
 
-def get_exp_check_dir(exp_name: str) -> str:
+def get_exp_check_dir(exp_name: str) -> Traversable:
     """
     Returns checkpoint dir for given experiment name.
     :param exp_name: str - experiment name
     :return: str - checkpoint dir
     """
 
-    return os.path.join(get_exp_dir(exp_name), "checkpoints")
+    return get_exp_dir(exp_name).joinpath("checkpoints")
 
 
-def get_exp_plot_dir(exp_name: str) -> str:
+def get_exp_plot_dir(exp_name: str) -> Traversable:
     """
     Returns postprocessing directory for given experiment name.
 
@@ -155,11 +155,10 @@ def get_exp_plot_dir(exp_name: str) -> str:
     :return: str - postprocessing dir
     """
 
-    print(get_exp_dir(exp_name))
-    return os.path.join(get_exp_dir(exp_name), "plots")
+    return get_exp_dir(exp_name).joinpath("plots")
 
 
-def get_exp_conf_path(exp_name) -> str:
+def get_exp_conf_path(exp_name) -> Traversable:
     """
     Returns experiment configuration path from given experiment name.
 
@@ -167,10 +166,10 @@ def get_exp_conf_path(exp_name) -> str:
     :return: str - experiment configuration path
     """
 
-    return os.path.join(con.u_config.exp_dir, exp_name + ".yaml")
+    return get_exp_dir(exp_name).joinpath(exp_name + ".yaml")
 
 
-def get_clf_path(exp_name, clf_class_name, i: int):
+def get_clf_path(exp_name, clf_class_name, i: int) -> Traversable:
     """
     Returns classifier checkpoint path for given experiment name and classifier.
 
@@ -180,44 +179,15 @@ def get_clf_path(exp_name, clf_class_name, i: int):
     :return: str - checkpoint path
     """
 
-    return os.path.join(get_exp_check_dir(exp_name), clf_class_name + "_" + str(i) + ".sav")
+    return get_exp_check_dir(exp_name).joinpath(clf_class_name + "_" + str(i) + ".sav")
 
 
-def get_scaler_path(exp_name: str, clf_class: str):
+def get_scaler_path(exp_name: str) -> Traversable:
     """
     Returns scaler path for given experiment name.
 
     :param exp_name: str - experiment name
-    :param clf_class: str - class name of classifier
     :return: str - scaler path
     """
 
-    return os.path.join(get_exp_check_dir(exp_name), clf_class + "_scaler.sav")
-
-
-def create_exp_dirs(exp_name: str) -> None:
-    """
-    Creates required directories for a given experiment name
-    :param exp_name: str - experiment name
-    :return: None
-    """
-
-    exp_dir = get_exp_dir(exp_name)
-    exp_check_dir = get_exp_check_dir(exp_name)
-    dirs = [exp_dir, exp_check_dir]
-
-    for d in dirs:
-        if not os.path.isdir(d):
-            os.makedirs(d)
-
-
-def create_pp_dirs(exp_name: str) -> None:
-    """
-    Creates required postprocessing directories for a given experiment name.
-    :param exp_name: str - experiment name
-    :return: None
-    """
-
-    plot_dir = get_exp_plot_dir(exp_name)
-    if not os.path.isdir(plot_dir):
-        os.makedirs(plot_dir)
+    return get_exp_check_dir(exp_name).joinpath("scaler.sav")

@@ -3,7 +3,7 @@ FROM python:${PYTHON_VERSION}-slim AS base
 
 WORKDIR /app
 ENV PATH="/venv/bin:${PATH}" \
-    VIRTUAL_ENV="/venv" \
+    VIRTUAL_ENV="/venv/" \
     PYTHONFAULTHANDLER=1 \
     PYTHONUNBUFFERED=1
 
@@ -14,18 +14,21 @@ ENV PIP_NO_CACHE_DIR=1 \
 # use virtualenv to leverage multi-stage builds
 RUN python -m venv $VIRTUAL_ENV
 RUN python -m pip install --upgrade pip
-COPY requirements.txt requirements.txt
+COPY ./requirements.txt ./requirements.txt
 RUN pip install -r requirements.txt
 COPY . .
-
-FROM base AS prod
-COPY --from=builder /venv /venv
-COPY ./src ./src
-COPY ./data ./data
-COPY ./experiments ./experiments
-ENTRYPOINT ["python", "src/main.py"]
 
 FROM base AS dev
 COPY --from=builder /venv /venv
 COPY . .
+EXPOSE 8000
 CMD ["bash"]
+
+FROM base AS prod
+COPY --from=builder /venv /venv
+COPY . .
+EXPOSE 8000
+ENTRYPOINT ["python", "src/main.py"]
+CMD ["-m", "0", "-e", "exp_no_subset"]
+
+

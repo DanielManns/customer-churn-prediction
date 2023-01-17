@@ -1,0 +1,47 @@
+target_name: "churn"
+
+# all_features:
+#   [
+#     'state',
+#     'account_length',
+#     'area_code',
+#     'international_plan',
+#     'voice_mail_plan',
+#     'number_vmail_messages',
+#     'total_day_minutes',
+#     'total_day_calls',
+#     'total_day_charge',
+#     'total_eve_minutes',
+#     'total_eve_calls',
+#     'total_eve_charge',
+#     'total_night_minutes',
+#     'total_night_calls',
+#     'total_night_charge',
+#     'total_intl_minutes',
+#     'total_intl_calls',
+#     'total_intl_charge',
+#     'number_customer_service_calls'
+#   ]
+
+# imp_features:
+#   [
+#     'state',
+#     'international_plan',
+#     'voice_mail_plan',
+#     'number_vmail_messages',
+#     'number_customer_service_calls',
+#     'total_reg_minutes',
+#     'total_reg_charge'
+#   ]
+
+classifiers:
+  [
+    "CategoricalNB",
+    "GaussianNB",
+    "LogisticRegression",
+    "DecisionTreeClassifier"
+  ]
+
+port: 8000
+host: "0.0.0.0"
+reload: True

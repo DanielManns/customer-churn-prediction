@@ -1,0 +1,4 @@
+gradio~=3.14.0
+dacite~=1.6.0
+PyYAML~=6.0
+pandas==1.5.1

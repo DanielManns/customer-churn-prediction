@@ -1,5 +1,7 @@
-/venv/
+backend/venv/
+frontend/venv/
 /.idea/
 /shelf/
 /workspace.xml
 *.sav
+*__pycache__
