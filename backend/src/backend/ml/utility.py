@@ -5,13 +5,11 @@ import yaml
 from sklearn.compose import ColumnTransformer
 import backend.data as data
 from backend.data import experiments
-from backend.config import BackendConfig
+from backend.config import conf
 import pandas as pd
 from sklearn.base import ClassifierMixin
 import pickle
 from importlib import resources
-
-conf = BackendConfig.from_yaml()
 
 
 def load_train_dataset() -> pd.DataFrame:

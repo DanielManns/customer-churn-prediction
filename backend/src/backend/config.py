@@ -6,9 +6,41 @@ from pathlib import Path
 
 
 @dataclass
+class Features:
+    state: str
+    account_length: int
+    area_code: str
+    international_plan: bool
+    voice_mail_plan: bool
+    number_vmail_messages: int
+    total_day_minutes: float
+    total_day_calls: int
+    total_day_charge: float
+    total_eve_minutes: float
+    total_eve_calls: int
+    total_eve_charge: float
+    total_night_minutes: float
+    total_night_calls: int
+    total_night_charge: float
+    total_intl_minutes: float
+    total_intl_calls: int
+    total_intl_charge: float
+    number_customer_service_calls: int
+
+@dataclass
+class ImpFeatures:
+    state: str
+    international_plan: bool
+    voice_mail_plan: bool
+    number_vmail_messages: int
+    number_customer_service_calls: int
+    total_reg_minutes: float
+    total_reg_charge: float
+
+
+@dataclass
 class BackendConfig:
     target_name: str
-    im_vars: list[str]
     classifiers: list[str]
     port: int
     host: str
@@ -24,3 +56,5 @@ class BackendConfig:
         }
 
         return from_dict(data_class=BackendConfig, data=data, config=Config(type_hooks=converters))
+
+conf = BackendConfig.from_yaml()

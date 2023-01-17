@@ -21,11 +21,13 @@ COPY . .
 FROM base AS dev
 COPY --from=builder /venv /venv
 COPY . .
+EXPOSE 8000
 CMD ["bash"]
 
 FROM base AS prod
 COPY --from=builder /venv /venv
 COPY . .
+EXPOSE 8000
 ENTRYPOINT ["python", "src/main.py"]
 CMD ["-m", "0", "-e", "exp_no_subset"]
 

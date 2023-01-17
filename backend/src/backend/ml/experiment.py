@@ -9,12 +9,8 @@ from sklearn.linear_model import LogisticRegression
 
 from backend.ml.model import train_model, predict_model, explain_model
 from backend.ml.preprocessing import get_preprocessed_dataset, scale_df
-from backend.config import BackendConfig
+from backend.config import conf
 from backend.ml.utility import load_cv_clfs, save_clfs, save_scaler, load_scaler
-
-
-
-conf = BackendConfig.from_yaml()
 
 
 def train_experiment(exp_config: dict) -> list[list[ClassifierMixin], list[float], list[float]]:

@@ -3,11 +3,9 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.compose import ColumnTransformer
 from sklearn.compose import make_column_selector as selector
 import numpy as np
-from backend.config import BackendConfig
+from backend.config import conf, Features, ImpFeatures
 from backend.ml.utility import load_train_dataset, load_test_dataset
 from typing import Optional
-
-conf = BackendConfig.from_yaml()
 
 
 def get_preprocessed_dataset(exp_config: dict, train: bool) -> list[pd.DataFrame, Optional[pd.DataFrame]]:
@@ -32,8 +30,8 @@ def get_preprocessed_dataset(exp_config: dict, train: bool) -> list[pd.DataFrame
         X = apply_preprocessing(raw_df)
 
     # subset important variables
-    if exp_config["features"]["is_subset"]:
-        X = X.loc[:, conf.im_vars]
+    features = get_features(exp_config)
+    X = X.loc[:, features]
 
     return X, y
 
@@ -135,6 +133,14 @@ def create_scaler(df: pd.DataFrame) -> ColumnTransformer:
     ], verbose_feature_names_out=False)
 
     return col_transformer
+
+
+def get_features(exp_config: dict) -> list:
+    if exp_config["features"]["is_subset"]:
+        features = list(ImpFeatures.__annotations__.keys())
+    else:
+        features = list(Features.__annotations__.keys())
+    return features
 
 
 def get_cat_features(df: pd.DataFrame) -> list:

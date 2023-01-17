@@ -19,13 +19,12 @@ $(VENV)/Scripts/activate: $(REQUIREMENTS)
 #	. $(VENV)/Scripts/activate
 	
 
-run_docker:
-	$(WSL) docker run -it --rm $(COMPONENT):$(DOCKER_BUILD)
+docker_run:
+	$(WSL) docker run -it --rm -p 8000:8000 $(COMPONENT):$(DOCKER_BUILD)
 
-build_run_docker: build_docker
-	$(WSL) docker run -it --rm $(COMPONENT):$(DOCKER_BUILD)
+docker_build_run: docker_build docker_run
 
-build_docker: $(COMPONENT)/Dockerfile
+docker_build: $(COMPONENT)/Dockerfile
 	$(WSL) docker build --tag $(COMPONENT):$(DOCKER_BUILD) --target $(DOCKER_BUILD) $(COMPONENT)
 
 clean:
