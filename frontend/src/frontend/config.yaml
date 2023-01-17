@@ -1,1 +1,2 @@
-test: "Hello World!"
+backend_ip: "localhost"
+endpoint: "/"

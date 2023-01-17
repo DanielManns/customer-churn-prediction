@@ -7,7 +7,9 @@ from pathlib import Path
 
 @dataclass
 class FrontendConfig:
-    test: str
+    backend_ip: str
+    endpoint: str
+    example_endpoint: str
 
     @classmethod
     def from_yaml(cls):
