@@ -62,12 +62,10 @@ async def api_exp_features(exp_name: str) -> list[str]:
 @app.post("/{exp_name}/predict")
 async def api_exp_predict(exp_name: str, df_json: str) -> str:
     exp_config = load_exp_config(exp_name)
-    print(df_json)
 
-    df = pd.read_json(df_json, orient=JSON_FORMAT)
-    print(df.head())
-    df = apply_preprocessing(df)
-    preds = predict_experiment(exp_config, df_json)
+    df = apply_preprocessing(pd.read_json(df_json, orient=JSON_FORMAT))
+    
+    preds = predict_experiment(exp_config, df)
     
     return preds.to_json(orient=JSON_FORMAT)
 

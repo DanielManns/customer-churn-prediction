@@ -16,23 +16,25 @@ import pandas as pd
 
 EXP_NAME = "exp_no_subset"
 NUM_CLASSIFIERS = 2
-EXAMPLE_ENDPOINT = f"https://{conf.backend_host}:{conf.port}/{EXP_NAME}/example_data"
-PREDICT_ENDPOINT = "/{EXP_NAME}/predict"
+ENDPOINT = f"http://{conf.backend_host}:{conf.port}/{EXP_NAME}"
+EXAMPLE_ENDPOINT = f"{ENDPOINT}/example_data"
+PREDICT_ENDPOINT = f"/{ENDPOINT}/predict"
+
 
 def request_examples():
     response = requests.get(EXAMPLE_ENDPOINT)
-    return pd.from_json(response.body)
+    return pd.read_json(response.json())
     
 
-def request_inference(input_dataframe: pd.DataFrame):
+def request_inference(input_dataframe: pd.DataFrame) -> pd.DataFrame:
     response = requests.post(PREDICT_ENDPOINT, input_dataframe.to_json())
-    return response.body()
+    return pd.read_json(response.json())
 
 
 def run_gui():
     example_df = request_examples()
     # df, _ = get_preprocessed_dataset("mixed", exp_config["features"]["is_subset"], mode="test")
-    inputs = [gr.Dataframe(row_count=(1, "dynamic"), col_count=(len(example_df.cols), "fixed"), label="Input Data", interactive=True)]
+    inputs = [gr.Dataframe(row_count=(1, "dynamic"), col_count=(len(example_df.columns), "fixed"), label="Input Data", interactive=True)]
 
     outputs = [
         gr.Dataframe(row_count=(1, "dynamic"), col_count=(NUM_CLASSIFIERS, "fixed"), label="Predictions", headers=["Logistic Regression", "Decision Tree"])]

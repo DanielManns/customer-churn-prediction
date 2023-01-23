@@ -6,6 +6,7 @@ from backend.argument_parser import parse
 from backend.ml.experiment import train_experiment
 from backend.ml.utility import load_exp_config
 
+EXP_CONFIG = {}
 
 def warn(*args, **kwargs):
     pass
@@ -19,13 +20,13 @@ if __name__ == "__main__":
     args = parse()
 
     # init
-    exp_config = load_exp_config(args.exp_name)
+    EXP_CONFIG = load_exp_config(args.exp_name)
 
     # supress warnings
     warnings.warn = warn
 
     if args.mode == 0:
-        train_experiment(exp_config)
+        train_experiment(EXP_CONFIG)
         start_api()
     elif args.mode == 1:
         start_api()

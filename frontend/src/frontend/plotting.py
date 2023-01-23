@@ -24,7 +24,7 @@ def plot_feature_importance(feature_importance: pd.DataFrame, classifier_name: s
     plt.show()
 
 
-def plot_dt(dt: BaseDecisionTree, feature_names: [str], class_names: [str]) -> None:
+def plot_dt(dt: BaseDecisionTree, feature_names: list[str], class_names: list[str]) -> None:
     """
     Plots visualization of given decision tree.
 
@@ -39,7 +39,7 @@ def plot_dt(dt: BaseDecisionTree, feature_names: [str], class_names: [str]) -> N
     plt.show()
 
 
-def plot_alpha_score_curve(train_scores: [float], test_scores: [float], ccp_alphas: [float]) -> None:
+def plot_alpha_score_curve(train_scores: list[float], test_scores: list[float], ccp_alphas: list[float]) -> None:
     """
     Plots the train- vs. test accuracy curve of different alphas.
 

@@ -7,3 +7,4 @@ dacite~=1.6.0
 PyYAML~=6.0
 fastapi~=0.88.0
 uvicorn[standard]
+requests
