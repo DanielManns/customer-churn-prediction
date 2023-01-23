@@ -21,11 +21,13 @@ COPY . .
 FROM base AS dev
 COPY --from=builder /venv /venv
 COPY . .
+EXPOSE 8001
 CMD ["bash"]
 
 FROM base AS prod
 COPY --from=builder /venv /venv
-COPY src ./src
+COPY . .
+EXPOSE 8001
 ENTRYPOINT ["python", "src/main.py"]
 
 

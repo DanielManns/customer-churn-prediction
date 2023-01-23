@@ -1,2 +1,3 @@
-backend_ip: "localhost"
+backend_host: "localhost"
+port: 8000
 endpoint: "/"

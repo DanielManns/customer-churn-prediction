@@ -8,7 +8,7 @@ from backend.ml.utility import load_train_dataset, load_test_dataset
 from typing import Optional
 
 
-def get_preprocessed_dataset(exp_config: dict, train: bool) -> list[pd.DataFrame, Optional[pd.DataFrame]]:
+def get_train_dataset(exp_config: dict) -> list[pd.DataFrame, Optional[pd.DataFrame]]:
     """
     Returns preprocessed categorical-, continuous-, and mixed DataFrame as well as labels.
 
@@ -20,14 +20,10 @@ def get_preprocessed_dataset(exp_config: dict, train: bool) -> list[pd.DataFrame
 
     y = None
 
-    if train:
-        raw_df = load_train_dataset()
-        X = apply_preprocessing(raw_df)
-        y = X[conf.target_name]
-        X = X.drop(columns=[conf.target_name])
-    else:
-        raw_df = load_test_dataset()
-        X = apply_preprocessing(raw_df)
+    raw_df = load_train_dataset()
+    X = apply_preprocessing(raw_df)
+    y = X[conf.target_name]
+    X = X.drop(columns=[conf.target_name])
 
     # subset important variables
     features = get_features(exp_config)

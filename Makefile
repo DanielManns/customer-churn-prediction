@@ -1,5 +1,6 @@
 COMPONENT = backend
-DOCKER_BUILD = dev
+DOCKER_BUILD = prod
+PORT = 8000
 VENV = $(COMPONENT)/venv
 PYTHON = $(VENV)/Scripts/python
 REQUIREMENTS = $(COMPONENT)/requirements.txt
@@ -20,7 +21,7 @@ $(VENV)/Scripts/activate: $(REQUIREMENTS)
 	
 
 docker_run:
-	$(WSL) docker run -it --rm -p 8000:8000 $(COMPONENT):$(DOCKER_BUILD)
+	$(WSL) docker run -it --rm -p $(PORT):$(PORT) $(COMPONENT):$(DOCKER_BUILD)
 
 docker_build_run: docker_build docker_run
 

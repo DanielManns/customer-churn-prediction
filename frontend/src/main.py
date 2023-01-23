@@ -1,10 +1,8 @@
 import gradio as gr
 
-from frontend.src.frontend.config import FrontendConfig
+from frontend.config import conf
 import requests
 import pandas as pd
-
-conf = FrontendConfig.from_yaml()
 
 # TODO:
 #  - Request example row from backend
@@ -18,7 +16,7 @@ conf = FrontendConfig.from_yaml()
 
 EXP_NAME = "exp_no_subset"
 NUM_CLASSIFIERS = 2
-EXAMPLE_ENDPOINT = "/{EXP_NAME}/example_data"
+EXAMPLE_ENDPOINT = f"https://{conf.backend_host}:{conf.port}/{EXP_NAME}/example_data"
 PREDICT_ENDPOINT = "/{EXP_NAME}/predict"
 
 def request_examples():
@@ -43,3 +41,6 @@ def run_gui():
     # DT_clfs = load_clfs(exp_config["name"], "DecisionTreeClassifier", exp_config["cross_validation"]["n_splits"])
 
     gr.Interface(fn=request_inference, inputs=inputs, outputs=outputs, examples=[example_df], examples_per_page=10).launch()
+
+if __name__ == "__main__":
+    run_gui()

@@ -7,9 +7,9 @@ from pathlib import Path
 
 @dataclass
 class FrontendConfig:
-    backend_ip: str
+    backend_host: str
+    port: int
     endpoint: str
-    example_endpoint: str
 
     @classmethod
     def from_yaml(cls):
@@ -21,3 +21,5 @@ class FrontendConfig:
         }
 
         return from_dict(data_class=FrontendConfig, data=data, config=Config(type_hooks=converters))
+
+conf = FrontendConfig.from_yaml()
