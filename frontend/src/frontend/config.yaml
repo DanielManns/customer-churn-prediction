@@ -1,3 +1,4 @@
 backend_host: "backend"
-port: 8000
-endpoint: "/"
+backend_port: 8000
+frontend_host: "frontend"
+frontend_port: 7860

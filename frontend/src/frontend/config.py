@@ -8,8 +8,9 @@ from pathlib import Path
 @dataclass
 class FrontendConfig:
     backend_host: str
-    port: int
-    endpoint: str
+    backend_port: int
+    frontend_host: str
+    frontend_port: int
 
     @classmethod
     def from_yaml(cls):

@@ -16,7 +16,7 @@ import pandas as pd
 
 EXP_NAME = "exp_no_subset"
 NUM_CLASSIFIERS = 2
-ENDPOINT = f"http://{conf.backend_host}:{conf.port}/{EXP_NAME}"
+ENDPOINT = f"http://{conf.backend_host}:{conf.backend_port}/{EXP_NAME}"
 EXAMPLE_ENDPOINT = f"{ENDPOINT}/example_data"
 PREDICT_ENDPOINT = f"/{ENDPOINT}/predict"
 
@@ -42,7 +42,8 @@ def run_gui():
     # LR_clfs = load_clfs(exp_config["name"], "LogisticRegression", exp_config["cross_validation"]["n_splits"])
     # DT_clfs = load_clfs(exp_config["name"], "DecisionTreeClassifier", exp_config["cross_validation"]["n_splits"])
 
-    gr.Interface(fn=request_inference, inputs=inputs, outputs=outputs, examples=[example_df], examples_per_page=10).launch()
+    interface = gr.Interface(fn=request_inference, inputs=inputs, outputs=outputs, examples=[example_df], examples_per_page=10)
+    interface.launch(server_name=conf.frontend_host, server_port=conf.frontend_port)
 
 if __name__ == "__main__":
     run_gui()
