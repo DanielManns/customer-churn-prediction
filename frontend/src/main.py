@@ -18,17 +18,24 @@ EXP_NAME = "exp_no_subset"
 NUM_CLASSIFIERS = 2
 ENDPOINT = f"http://{conf.backend_host}:{conf.backend_port}/{EXP_NAME}"
 EXAMPLE_ENDPOINT = f"{ENDPOINT}/example_data"
-PREDICT_ENDPOINT = f"/{ENDPOINT}/predict"
+PREDICT_ENDPOINT = f"{ENDPOINT}/predict"
 
 
-def request_examples():
+def request_examples() -> pd.DataFrame:
+    # response body is automatically json by FASTAPI
+    # response.text gives json content
+    # response.json() DECODES json content to list object
     response = requests.get(EXAMPLE_ENDPOINT)
-    return pd.read_json(response.json())
+    return pd.read_json(response.text)
     
 
-def request_inference(input_dataframe: pd.DataFrame) -> pd.DataFrame:
-    response = requests.post(PREDICT_ENDPOINT, input_dataframe.to_json())
-    return pd.read_json(response.json())
+def request_inference(input_df: pd.DataFrame) -> pd.DataFrame:
+    payload = input_df.to_dict()
+    
+    response = requests.post(PREDICT_ENDPOINT, json=payload)
+    print(response.text)
+    
+    return pd.read_json(response.text)
 
 
 def run_gui():
