@@ -8,3 +8,5 @@ services:
     build: ./frontend
     ports:
       - 7860:7860
+    depends_on:
+      - backend

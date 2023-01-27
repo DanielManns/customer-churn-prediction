@@ -42,8 +42,6 @@ def train_experiment(exp_config: dict) -> list[list[ClassifierMixin], list[float
         print(f"Train accuracy score of {c['class_name']}: {np.array(train_scores).mean()} ± {np.array(train_scores).std()}")
         print(f"Test accuracy score of {c['class_name']}: {np.array(test_scores).mean()} ± {np.array(test_scores).std()}")
 
-        print()
-
     return result
 
 
@@ -57,6 +55,9 @@ def predict_experiment(exp_config: dict, X: pd.DataFrame) -> pd.DataFrame:
     """
 
     scaler = load_scaler(exp_config["name"])
+    
+    # BUG: scaler only treats original features and not engineered features, therefore it cannot scale engineered features in prediction
+    # TODO: use scale_df function
     X = scaler.transform(X)
 
     classifiers = exp_config["classifiers"]

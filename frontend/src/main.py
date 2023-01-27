@@ -25,15 +25,16 @@ def request_examples() -> pd.DataFrame:
     # response body is automatically json by FASTAPI
     # response.text gives json content
     # response.json() DECODES json content to list object
-    response = requests.get(EXAMPLE_ENDPOINT)
+    with requests.Session() as s:
+        response = s.get(EXAMPLE_ENDPOINT)
     return pd.read_json(response.text)
     
 
 def request_inference(input_df: pd.DataFrame) -> pd.DataFrame:
     payload = input_df.to_dict()
     
-    response = requests.post(PREDICT_ENDPOINT, json=payload)
-    print(response.text)
+    with requests.Session() as s:
+        response = s.post(PREDICT_ENDPOINT, json=payload)
     
     return pd.read_json(response.text)
 

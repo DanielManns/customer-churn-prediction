@@ -7,7 +7,7 @@ from backend.ml.preprocessing import get_features, get_train_dataset
 from backend.config import Features
 from backend.ml.experiment import predict_experiment
 import pandas as pd
-from backend.ml.preprocessing import apply_preprocessing
+from backend.ml.preprocessing import apply_preprocessing, enrich_df
 import requests
 from enum import Enum
 
@@ -75,9 +75,11 @@ async def api_exp_predict(exp_name: ExpName, df_dict: dict):
     exp_config = load_exp_config(exp_name.value)
 
     df = pd.DataFrame.from_dict(df_dict)
-    
-    df = apply_preprocessing(df)
-    
+
+    df = enrich_df(df)
+    print(df.head())
+    print(df.columns)
+    print(len(df.columns))
     
     preds = predict_experiment(exp_config, df)
 
