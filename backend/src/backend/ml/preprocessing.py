@@ -86,22 +86,29 @@ def enrich_df(df: pd.DataFrame) -> pd.DataFrame:
     :param df: Pandas DataFrame - raw DataFrame
     :return: Pandas DataFrame - raw DataFrame with additional features
     """
+    
+    sum_cols = {
+        "total_reg_calls": ["total_eve_calls", "total_night_calls", "total_day_calls"],
+        "total_reg_minutes": ["total_eve_minutes", "total_night_minutes", "total_day_minutes"],
+        "total_reg_charge": ["total_eve_charge","total_night_charge","total_day_charge"]
+    }
 
-    # sum regular calls, minutes and charge
-    df["total_reg_calls"] = df["total_eve_calls"] + df["total_night_calls"] + df["total_day_calls"]
-    df["total_reg_minutes"] = df["total_eve_minutes"] + df["total_night_minutes"] + df["total_day_minutes"]
-    df["total_reg_charge"] = df["total_eve_charge"] + df["total_night_charge"] + df["total_day_charge"]
+    div_cols = {
+        "avg_day_call_duration": ["total_day_minutes", "total_day_calls"],
+        "avg_eve_call_duration": ["total_eve_minutes", "total_eve_calls"],
+        "avg_night_call_duration": ["total_night_minutes", "total_night_calls"],
+        "avg_intl_call_duration": ["total_intl_minutes", "total_intl_calls"]
+    }
 
-    # calculate average call duration for each daytime
-    df["avg_day_call_duration"] = df["total_day_minutes"].divide(df["total_day_calls"]).round(2)
-    df["avg_eve_call_duration"] = df["total_eve_minutes"].divide(df["total_eve_calls"]).round(2)
-    df["avg_night_call_duration"] = df["total_night_minutes"].divide(df["total_night_calls"]).round(2)
-    df["avg_intl_call_duration"] = df["total_intl_minutes"].divide(df["total_intl_calls"]).round(2)
+    new_cols = {**sum_cols, **div_cols}
 
-    avg_group = ["avg_day_call_duration", "avg_eve_call_duration", "avg_night_call_duration", "avg_intl_call_duration"]
-
-    # Fill all na values from zero division
-    df[avg_group] = df[avg_group].fillna(value=0.0)
+    for col_name, req in new_cols.items():
+        if set(req).issubset(df.columns):
+            if col_name in sum_cols.keys():
+                df[col_name] = df.loc[:, req].sum(axis=1)
+            elif col_name in div_cols.keys():
+                df[col_name] = df.loc[:, req[0]].divide(df.loc[:, req[1]]).round(2)
+                df[col_name] = df[col_name].fillna(0.0)
 
     return df
 

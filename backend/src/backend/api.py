@@ -74,10 +74,7 @@ async def api_exp_features(exp_name: ExpName):
 async def api_exp_predict(exp_name: ExpName, df_dict: dict):
     exp_config = load_exp_config(exp_name.value)
 
-    print(type(df_dict))
-    print(df_dict)
     df = pd.DataFrame.from_dict(df_dict)
-    print(df.head())
     
     df = apply_preprocessing(df)
     
