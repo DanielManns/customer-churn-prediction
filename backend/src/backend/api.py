@@ -3,7 +3,7 @@ import uvicorn
 from backend.config import conf
 from pydantic import BaseModel
 from backend.ml.utility import load_exp_config
-from backend.ml.preprocessing import get_features, get_train_dataset
+from backend.ml.preprocessing import get_exp_features, get_train_dataset
 from backend.config import Features
 from backend.ml.experiment import predict_experiment
 import pandas as pd
@@ -67,7 +67,7 @@ async def api_exp_features(exp_name: ExpName):
     @return list of features
     """
     exp_config = load_exp_config(exp_name.value)
-    return get_features(exp_config)
+    return get_exp_features(exp_config)
 
 
 @app.post("/{exp_name}/predict")

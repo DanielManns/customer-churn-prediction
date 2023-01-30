@@ -34,8 +34,12 @@ class ImpFeatures:
     voice_mail_plan: bool
     number_vmail_messages: int
     number_customer_service_calls: int
-    total_reg_minutes: float
-    total_reg_charge: float
+    total_day_minutes: float
+    total_eve_minutes: float
+    total_night_minutes: float
+    total_day_charge: float
+    total_eve_charge: float
+    total_night_charge: float
 
 
 @dataclass

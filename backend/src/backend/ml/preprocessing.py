@@ -8,41 +8,42 @@ from backend.ml.utility import load_train_dataset, load_test_dataset
 from typing import Optional
 
 
-def get_train_dataset(exp_config: dict) -> list[pd.DataFrame, Optional[pd.DataFrame]]:
+def get_train_dataset(exp_config: dict) -> list[pd.DataFrame, pd.DataFrame]:
     """
-    Returns preprocessed categorical-, continuous-, and mixed DataFrame as well as labels.
+    Returns enriched, but not scaled dataset for given configuration
 
     :rtype: object
     :param exp_config: dict - experimental configuration
-    :param train: bool - whether to load train dataset
     :return: [pd.DataFrame, pd.DataFrame] - X, y
     """
 
-    y = None
+    X, y = get_clean_dataset(exp_config)
+    X = enrich_df(X)
+
+    return X, y
+
+def get_clean_dataset(exp_config: dict) -> list[pd.DataFrame, pd.DataFrame]:
+    """
+    Returns clean, but not enriched nor scaled dataset for given configuration
+
+    :rtype: object
+    :param exp_config: dict - experimental configuration
+    :return: [pd.DataFrame, pd.DataFrame] - X, y
+    """
 
     raw_df = load_train_dataset()
-    X = apply_preprocessing(raw_df)
+    X = clean_df(raw_df)
+
     y = X[conf.target_name]
     X = X.drop(columns=[conf.target_name])
 
-    # subset important variables
-    features = get_features(exp_config)
+    features = get_exp_features(exp_config)
     X = X.loc[:, features]
 
     return X, y
 
 
-def apply_preprocessing(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Applies data cleaning as well as feature engineering to given df.
-
-    :param df: Pandas DataFrame - raw DataFrame
-    :return: Pandas DataFrame - preprocessed DataFrame
-    """
-    return enrich_df(clean_df(df))
-
-
-def scale_df(X: pd.DataFrame, y: pd.DataFrame) -> list[pd.DataFrame, pd.DataFrame, ColumnTransformer]:
+def scale_df(X: pd.DataFrame, col_transformer: ColumnTransformer=None) -> list[pd.DataFrame, pd.DataFrame, ColumnTransformer]:
     """
     Transforms Dataframe and returns ColumnTransformer.
 
@@ -50,9 +51,12 @@ def scale_df(X: pd.DataFrame, y: pd.DataFrame) -> list[pd.DataFrame, pd.DataFram
     :param y: pd.DataFrame - labels
     :return: [pd.DataFrame, pd.DataFrame, ColumnTransformer]
     """
-    col_transformer = create_scaler(X)
-    X = col_transformer.fit_transform(X)
-    return X, y, col_transformer
+    if not col_transformer:
+        col_transformer = create_scaler(X)
+        X = col_transformer.fit_transform(X)
+    else:
+        X = col_transformer.transform(X)
+    return X, col_transformer
 
 
 def clean_df(df: pd.DataFrame) -> pd.DataFrame:
@@ -81,10 +85,10 @@ def clean_df(df: pd.DataFrame) -> pd.DataFrame:
 
 def enrich_df(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Enriches raw DataFrame with additional features used by ml.
+    Enriches cleaned DataFrame with additional features used by models.
 
-    :param df: Pandas DataFrame - raw DataFrame
-    :return: Pandas DataFrame - raw DataFrame with additional features
+    :param df: Pandas DataFrame - cleaned DataFrame
+    :return: Pandas DataFrame - cleaned and enriched DataFrame
     """
     
     sum_cols = {
@@ -117,7 +121,7 @@ def create_scaler(df: pd.DataFrame) -> ColumnTransformer:
     """
     Create column transformer for sklearn ml/pipeline.
 
-    :param df: Pandas DataFrame - clean and enriched DataFrame
+    :param df: Pandas DataFrame - cleaned and enriched DataFrame
     :return: sklearn.compose ColumnTransformer - ColumnTransformer
     """
 
@@ -138,30 +142,16 @@ def create_scaler(df: pd.DataFrame) -> ColumnTransformer:
     return col_transformer
 
 
-def get_features(exp_config: dict) -> list:
+def get_exp_features(exp_config: dict) -> list[str]:
+    """
+    Returns feature names for given configuration.
+
+    :param exp_config: dict - eperimental configuration
+    :return: list[str] - list of feature names
+    """
+
     if exp_config["features"]["is_subset"]:
         features = list(ImpFeatures.__annotations__.keys())
     else:
         features = list(Features.__annotations__.keys())
     return features
-
-
-def get_cat_features(df: pd.DataFrame) -> list:
-    """
-    Returns categorical variables of given DataFrame.
-
-    :param df: Pandas DataFrame - DataFrame
-    :return: String [] - List of categorical column names
-    """
-
-    return list(df.columns[df.dtypes == "category"])
-
-
-def get_con_features(df: pd.DataFrame) -> list:
-    """
-    Returns continuous variables of given DataFrame.
-
-    :param df: Pandas DataFrame - DataFrame
-    :return: String [] - List of continuous column names
-    """
-    return list(df.select_dtypes([np.number]).columns)
