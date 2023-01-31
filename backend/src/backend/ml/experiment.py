@@ -13,7 +13,6 @@ from backend.config import conf
 from backend.ml.utility import load_cv_clfs, save_clfs, save_scaler, load_scaler
 
 
-
 CV_METHOD = RepeatedKFold
 METRIC = accuracy_score
 

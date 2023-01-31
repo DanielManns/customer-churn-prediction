@@ -1,21 +1,18 @@
 from fastapi import FastAPI
 import uvicorn
 from backend.config import conf
-from pydantic import BaseModel
 from backend.ml.utility import load_exp_config
-from backend.ml.preprocessing import get_exp_features, get_train_dataset, get_clean_dataset
-from backend.config import Features
+from backend.ml.preprocessing import get_exp_features, get_clean_dataset
 from backend.ml.experiment import predict_experiment
-import pandas as pd
+from backend.config import Row, ExpName
 from backend.ml.utility import from_dict
-import requests
-from enum import Enum
+from typing import Dict
+import pandas as pd
 from pydantic import BaseModel
-from typing import Dict, Union
 
 app = FastAPI()
-JSON_FORMAT = "records"
-num_examples = 2
+NUM_EXAMPLES = 10
+DF_DICT_FORMAT = "index"
 
 # TODO:
 #  1. Receive experiment config from frontend and trigger training
@@ -26,31 +23,6 @@ num_examples = 2
 # Returned dict objects are automatically converted to json at client side
 # Additional parameters in function (not in url) are query parameters. Thesea are naturally strings, but get converted by fastAPI to defined types
 # Post: FastAPi reads BODY of request as json and converts types to defined Datamodel (from type hint in function declaration)
-
-class ExpName(str, Enum):
-    exp_no_subset = "exp_no_subset"
-    exp_subset = "exp_subset"
-
-class Row(BaseModel):
-    state: Union[str, None] = None
-    account_length: Union[int, None] = None
-    area_code: Union[str, None] = None
-    international_plan: Union[bool, None] = None
-    voice_mail_plan: Union[bool, None] = None
-    number_vmail_messages: Union[int, None] = None
-    total_day_minutes: Union[float, None] = None
-    total_day_calls: Union[int, None] = None
-    total_day_charge: Union[float, None] = None
-    total_eve_minutes: Union[float, None] = None
-    total_eve_calls: Union[int, None] = None
-    total_eve_charge: Union[float, None] = None
-    total_night_minutes: Union[float, None] = None
-    total_night_calls: Union[int, None] = None
-    total_night_charge: Union[float, None] = None
-    total_intl_minutes: Union[float, None] = None
-    total_intl_calls: Union[int, None] = None
-    total_intl_charge: Union[float, None] = None
-    number_customer_service_calls: Union[int, None] = None
 
 
 def start_api():
@@ -77,7 +49,7 @@ async def api_exp_example_data(exp_name: ExpName):
     
     exp_config = load_exp_config(exp_name.value)
     X, y = get_clean_dataset(exp_config)
-    df_dict = X.head(num_examples).to_dict()
+    df_dict = X.head(NUM_EXAMPLES).to_dict(orient=DF_DICT_FORMAT)
     
     return df_dict
 
@@ -89,19 +61,30 @@ async def api_exp_features(exp_name: ExpName):
     @param exp_name: experiment name
     @return list of features
     """
+
     exp_config = load_exp_config(exp_name.value)
     return get_exp_features(exp_config)
 
 
 @app.post("/{exp_name}/predict")
 async def api_exp_predict(exp_name: ExpName, df_dict: Dict[int, Row]):
+    """
+    Returns predictions for posted DataFrame.
+    @param exp_name: experiment name
+    @param df_dict: DataFrame parsed as dict - IMPORTANT to define "Dict[int, Row]" annotation, otherwise parsing error
+    @return predictions DataFrame parsed as dict
+    """
+
     exp_config = load_exp_config(exp_name.value)
 
-    df = from_dict(df_dict)
+    # map DataModel back to dict
+    df_dict = dict(zip(df_dict.keys(), map(BaseModel.dict, df_dict.values())))
+
+    df = pd.DataFrame.from_dict(df_dict, orient=DF_DICT_FORMAT)
     
     preds = predict_experiment(exp_config, df)
 
-    preds_dict = preds.to_dict()
+    preds_dict = preds.to_dict(orient=DF_DICT_FORMAT)
     return preds_dict
 
 
