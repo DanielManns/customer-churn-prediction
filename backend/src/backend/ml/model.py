@@ -9,7 +9,7 @@ from sklearn.tree import BaseDecisionTree
 
 
 def train_model(clf: BaseDecisionTree, X: pd.DataFrame, y: pd.DataFrame, cv_method, metric) -> \
-        list[[ClassifierMixin], [float], [float]]:
+        list[list[ClassifierMixin], list[float], list[float]]:
     """
     Applies cross validation to given pipeline, data and labels. This includes training and evaluation.
 
@@ -72,7 +72,7 @@ def predict_model(clfs: list[ClassifierMixin], X: pd.DataFrame) -> list[float, f
     :return: [float, float] - mean and standard deviation of ensemble prediction
     """
 
-    preds = np.array([clf.predict_exp(X) for clf in clfs])
+    preds = np.array([clf.predict(X) for clf in clfs])
     return preds.mean(axis=0), preds.std(axis=0)
 
 

@@ -8,9 +8,11 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
 
 from backend.ml.model import train_model, predict_model, explain_model
-from backend.ml.preprocessing import get_train_dataset, scale_df, enrich_df
+from backend.ml.preprocessing import get_train_dataset, scale_df, enrich_df, get_clean_dataset
 from backend.config import conf
 from backend.ml.utility import load_cv_clfs, save_clfs, save_scaler, load_scaler
+
+
 
 CV_METHOD = RepeatedKFold
 METRIC = accuracy_score
@@ -23,8 +25,10 @@ def train_experiment(exp_config: dict) -> list[list[ClassifierMixin], list[float
     :return:
     """
 
-    X, y = get_train_dataset(exp_config)
-    X, scaler = scale_df(X)
+    X_clean, y = get_clean_dataset(exp_config)
+    
+    X_enriched = enrich_df(X_clean)
+    X, scaler = scale_df(X_enriched)
     save_scaler(exp_config["name"], scaler)
 
     classifiers = exp_config["classifiers"]
@@ -42,6 +46,7 @@ def train_experiment(exp_config: dict) -> list[list[ClassifierMixin], list[float
         print(f"Train accuracy score of {c['class_name']}: {np.array(train_scores).mean()} ± {np.array(train_scores).std()}")
         print(f"Test accuracy score of {c['class_name']}: {np.array(test_scores).mean()} ± {np.array(test_scores).std()}")
 
+
     return result
 
 
@@ -55,11 +60,10 @@ def predict_experiment(exp_config: dict, X: pd.DataFrame) -> pd.DataFrame:
     """
 
     X = enrich_df(X)
-    
-    # BUG: scaler only treats original features and not engineered features, therefore it cannot scale engineered features in prediction
     scaler = load_scaler(exp_config["name"])
-    X, _ = scale_df(X, scaler)
 
+    X, _ = scale_df(X, scaler)
+    
     classifiers = exp_config["classifiers"]
     n_splits = exp_config["cross_validation"]["params"]["n_splits"]
 

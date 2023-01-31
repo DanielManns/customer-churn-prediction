@@ -191,3 +191,10 @@ def get_scaler_path(exp_name: str) -> Traversable:
     """
 
     return get_exp_check_dir(exp_name).joinpath("scaler.sav")
+
+
+def from_dict(data: dict, orient: str):
+    df = pd.DataFrame.from_dict(data, orient=orient)
+    df = df.astype(
+        {"state": "category", "area_code": "category", "international_plan": "category", "voice_mail_plan": "category"})
+    return df

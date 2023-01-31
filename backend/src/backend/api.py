@@ -3,17 +3,19 @@ import uvicorn
 from backend.config import conf
 from pydantic import BaseModel
 from backend.ml.utility import load_exp_config
-from backend.ml.preprocessing import get_exp_features, get_train_dataset
+from backend.ml.preprocessing import get_exp_features, get_train_dataset, get_clean_dataset
 from backend.config import Features
 from backend.ml.experiment import predict_experiment
 import pandas as pd
-from backend.ml.preprocessing import apply_preprocessing, enrich_df
+from backend.ml.utility import from_dict
 import requests
 from enum import Enum
+from pydantic import BaseModel
+from typing import Dict, Union
 
 app = FastAPI()
 JSON_FORMAT = "records"
-DICT_FORMAT = "list"
+num_examples = 2
 
 # TODO:
 #  1. Receive experiment config from frontend and trigger training
@@ -28,6 +30,27 @@ DICT_FORMAT = "list"
 class ExpName(str, Enum):
     exp_no_subset = "exp_no_subset"
     exp_subset = "exp_subset"
+
+class Row(BaseModel):
+    state: Union[str, None] = None
+    account_length: Union[int, None] = None
+    area_code: Union[str, None] = None
+    international_plan: Union[bool, None] = None
+    voice_mail_plan: Union[bool, None] = None
+    number_vmail_messages: Union[int, None] = None
+    total_day_minutes: Union[float, None] = None
+    total_day_calls: Union[int, None] = None
+    total_day_charge: Union[float, None] = None
+    total_eve_minutes: Union[float, None] = None
+    total_eve_calls: Union[int, None] = None
+    total_eve_charge: Union[float, None] = None
+    total_night_minutes: Union[float, None] = None
+    total_night_calls: Union[int, None] = None
+    total_night_charge: Union[float, None] = None
+    total_intl_minutes: Union[float, None] = None
+    total_intl_calls: Union[int, None] = None
+    total_intl_charge: Union[float, None] = None
+    number_customer_service_calls: Union[int, None] = None
 
 
 def start_api():
@@ -53,8 +76,8 @@ async def api_exp_example_data(exp_name: ExpName):
     """
     
     exp_config = load_exp_config(exp_name.value)
-    X, y = get_train_dataset(exp_config)
-    df_dict = X.head(10).to_dict()
+    X, y = get_clean_dataset(exp_config)
+    df_dict = X.head(num_examples).to_dict()
     
     return df_dict
 
@@ -71,15 +94,10 @@ async def api_exp_features(exp_name: ExpName):
 
 
 @app.post("/{exp_name}/predict")
-async def api_exp_predict(exp_name: ExpName, df_dict: dict):
+async def api_exp_predict(exp_name: ExpName, df_dict: Dict[int, Row]):
     exp_config = load_exp_config(exp_name.value)
 
-    df = pd.DataFrame.from_dict(df_dict)
-
-    df = enrich_df(df)
-    print(df.head())
-    print(df.columns)
-    print(len(df.columns))
+    df = from_dict(df_dict)
     
     preds = predict_experiment(exp_config, df)
 
