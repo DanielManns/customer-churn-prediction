@@ -4,9 +4,10 @@ from sklearn import tree
 # display(Image(filename="causal_model.png"))
 import pandas as pd
 from sklearn.tree import BaseDecisionTree
+import seaborn as sns
 
 
-def plot_feature_importance(feature_importance: pd.DataFrame, classifier_name: str) -> None:
+def plot_feature_importance(f_imp_df: pd.DataFrame, classifier_name: str) -> None:
     """
     Creates bar plot from given feature importance DataFrame
     :param feature_importance: pd.DataFrame - feature importance
@@ -14,7 +15,7 @@ def plot_feature_importance(feature_importance: pd.DataFrame, classifier_name: s
     :return: None
     """
 
-    ax = feature_importance.plot.barh(figsize=(15, 10))
+    ax = f_imp_df.plot.barh(figsize=(15, 10))
     plt.title(classifier_name)
     plt.axvline(x=0, color=".5")
     ax.set_xlabel("Feature importance")
@@ -22,6 +23,13 @@ def plot_feature_importance(feature_importance: pd.DataFrame, classifier_name: s
 
     plt.subplots_adjust(left=0.3)
     plt.show()
+    return 
+
+def sns_plot_feature_importance(f_imp_df: pd.DataFrame):
+    fig, ax = plt.subplots()
+    print(f_imp_df.head())
+    sns.barplot(data=f_imp_df, ax=ax)
+    return fig
 
 
 def plot_dt(dt: BaseDecisionTree, feature_names: list[str], class_names: list[str]) -> None:

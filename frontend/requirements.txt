@@ -4,3 +4,4 @@ PyYAML~=6.0
 pandas==1.5.1
 pythonping
 scikit-learn
+seaborn

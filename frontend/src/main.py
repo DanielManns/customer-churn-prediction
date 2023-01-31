@@ -4,8 +4,9 @@ from frontend.config import conf
 import requests
 import pandas as pd
 import time
-from frontend.plotting import plot_feature_importance
+from frontend.plotting import plot_feature_importance, sns_plot_feature_importance
 from frontend.plotting import plot_dt
+from functools import partial
 
 # TODO:
 #  - (Optionally) Configure example row
@@ -68,11 +69,13 @@ def request_explanation() -> pd.DataFrame:
     df = pd.read_json(response.text, orient=DF_DICT_FORMAT)
     return df
 
+
 def run_gui():
     example_df = request_examples()
     expl = request_explanation()
+    choices = list(range(len(expl.index)))
     with gr.Blocks() as ui:
-        with gr.Tab("predict_tab"):
+        with gr.Tab("Predict"):
             with gr.Row():
                 with gr.Column():
                     input = gr.Dataframe(row_count=(1, "dynamic"), col_count=(len(example_df.columns), "fixed"), label="Input Data", interactive=True)
@@ -81,13 +84,13 @@ def run_gui():
                     output = gr.Dataframe(row_count=(1, "dynamic"), col_count=(NUM_CLASSIFIERS, "fixed"), label="Predictions", headers=CLF_HEADERS)
             button = gr.Button("predict")
             button.click(request_prediction, inputs=[input], outputs=[output])
-        with gr.Tab("explain_tab"):
+        with gr.Tab("Explain"):
                 with gr.Row():
                     with gr.Column():
-                        gr.Plot(plot_feature_importance(expl, "DT Feature Importance"))
+                        gr.Dropdown(choices=choices, value=0)
                     with gr.Column():
-                        # gr.plot(plot_dt())
-                        pass
+                        exp_plot = gr.Plot(label="DecisionTree")
+        ui.load(fn=partial(sns_plot_feature_importance, expl), outputs=exp_plot)
             
 
     ui.launch(server_name=conf.frontend_host, server_port=conf.frontend_port)
