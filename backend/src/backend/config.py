@@ -32,6 +32,7 @@ class Row(BaseModel):
     total_intl_charge: Union[float, None] = None
     number_customer_service_calls: Union[int, None] = None
 
+
 @dataclass
 class Features:
     state: str

@@ -3,7 +3,7 @@ import uvicorn
 from backend.config import conf
 from backend.ml.utility import load_exp_config
 from backend.ml.preprocessing import get_exp_features, get_clean_dataset
-from backend.ml.experiment import predict_experiment
+from backend.ml.experiment import predict_experiment, explain_experiment
 from backend.config import Row, ExpName
 from backend.ml.utility import from_dict
 from typing import Dict
@@ -13,6 +13,7 @@ from pydantic import BaseModel
 app = FastAPI()
 NUM_EXAMPLES = 10
 DF_DICT_FORMAT = "index"
+pd.option_context('display.max_rows', None, 'display.max_columns', None)
 
 # TODO:
 #  1. Receive experiment config from frontend and trigger training
@@ -86,5 +87,20 @@ async def api_exp_predict(exp_name: ExpName, df_dict: Dict[int, Row]):
 
     preds_dict = preds.to_dict(orient=DF_DICT_FORMAT)
     return preds_dict
+
+
+@app.get("/{exp_name}/explain")
+async def api_exp_explain(exp_name: ExpName):
+    """
+    Returns feature names for given experiment name.
+    @param exp_name: experiment name
+    @return list of features
+    """
+
+    exp_config = load_exp_config(exp_name.value)
+    # list pd.DataFrame
+    explanation = explain_experiment(exp_config)[0]
+
+    return explanation.to_dict(orient=DF_DICT_FORMAT)
 
 
