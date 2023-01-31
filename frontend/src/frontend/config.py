@@ -11,6 +11,9 @@ class FrontendConfig:
     backend_port: int
     frontend_host: str
     frontend_port: int
+    timeout: int
+    retry_interval: int
+
 
     @classmethod
     def from_yaml(cls):

@@ -6,19 +6,17 @@ import pandas as pd
 import time
 
 # TODO:
-#  - Request example row from backend
 #  - (Optionally) Configure example row
-#  - Send example row to backend for prediction
-#  - Display prediction
+#  - Display error message when input incorrect
 #  6. Obtain clf explanation from backend (feature importance)
 #  7. Display clf explanation with plots in third tab
 #  1. Configure experiment in first tab
 #  2. Send experiment data to backend
 
-TIMEOUT = 30
-RETRY_INTERVAL = 1
+
 EXP_NAME = "exp_no_subset"
-NUM_CLASSIFIERS = 2
+NUM_CLASSIFIERS = 1
+CLF_HEADERS = ["Decision Tree"]
 ENDPOINT = f"http://{conf.backend_host}:{conf.backend_port}"
 HELLO_WORLD_ENDPOINT = f"{ENDPOINT}/"
 EXAMPLE_ENDPOINT = f"{ENDPOINT}/{EXP_NAME}/example_data"
@@ -30,7 +28,7 @@ def connect():
     t = 0
     st = time.time()
     con = False
-    while t < TIMEOUT:
+    while t < conf.timeout:
         try:
             requests.get(HELLO_WORLD_ENDPOINT)
             s = requests.session()
@@ -38,7 +36,7 @@ def connect():
             con = True
             break
         except:
-            time.sleep(RETRY_INTERVAL)
+            time.sleep(conf.retry_interval)
             t = time.time() - st
             print("retrying connect...")
             print(f"time elapsed: {round(t, 1)}")
@@ -68,7 +66,7 @@ def run_gui():
     inputs = [gr.Dataframe(row_count=(1, "dynamic"), col_count=(len(example_df.columns), "fixed"), label="Input Data", interactive=True)]
 
     outputs = [
-        gr.Dataframe(row_count=(1, "dynamic"), col_count=(NUM_CLASSIFIERS, "fixed"), label="Predictions", headers=["Logistic Regression", "Decision Tree"])]
+        gr.Dataframe(row_count=(1, "dynamic"), col_count=(NUM_CLASSIFIERS, "fixed"), label="Predictions", headers=CLF_HEADERS)]
 
 
     interface = gr.Interface(fn=request_prediction, inputs=inputs, outputs=outputs, examples=[example_df], examples_per_page=10)
