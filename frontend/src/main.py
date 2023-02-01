@@ -4,7 +4,7 @@ from frontend.config import conf
 import requests
 import pandas as pd
 import time
-from frontend.plotting import plot_feature_importance, sns_plot_feature_importance
+from frontend.plotting import plot_feature_importance, plot_feature_importance
 from frontend.plotting import plot_dt
 from functools import partial
 
@@ -74,6 +74,7 @@ def run_gui():
     example_df = request_examples()
     expl = request_explanation()
     choices = list(range(len(expl.index)))
+    importance_fn = partial(plot_feature_importance, expl)
     with gr.Blocks() as ui:
         with gr.Tab("Predict"):
             with gr.Row():
@@ -87,10 +88,11 @@ def run_gui():
         with gr.Tab("Explain"):
                 with gr.Row():
                     with gr.Column():
-                        gr.Dropdown(choices=choices, value=0)
+                        input_data = gr.Dropdown(choices=choices, value=0, label="Classifier Index")
                     with gr.Column():
                         exp_plot = gr.Plot(label="DecisionTree")
-        ui.load(fn=partial(sns_plot_feature_importance, expl), outputs=exp_plot)
+                    input_data.change(fn=importance_fn, inputs=input_data, outputs=exp_plot)
+        ui.load(fn=importance_fn, inputs=input_data, outputs=exp_plot)
             
 
     ui.launch(server_name=conf.frontend_host, server_port=conf.frontend_port)

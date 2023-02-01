@@ -100,6 +100,17 @@ def explain_model(clfs: list[ClassifierMixin], feature_names: list[str]) -> Opti
             ],
             columns=feature_names,
         )
+
+        # sum categorical features
+        state_cols = feature_importance.columns[list(map(lambda x: "state" in x, feature_importance.columns))]
+        area_code_cols = feature_importance.columns[list(map(lambda x: "area_code" in x, feature_importance.columns))]
+        if len(state_cols) > 0:
+            feature_importance["state"] = feature_importance.loc[:, state_cols].sum(axis=1)
+            feature_importance = feature_importance.drop(columns=state_cols)
+            
+        if len(area_code_cols) > 0:
+            feature_importance["area_code"] = feature_importance.loc[:, area_code_cols].sum(axis=1)
+            feature_importance = feature_importance.drop(columns=area_code_cols)
     else:
         feature_importance = None
         # raise ValueError("unexpected estimator")

@@ -5,30 +5,20 @@ from sklearn import tree
 import pandas as pd
 from sklearn.tree import BaseDecisionTree
 import seaborn as sns
+import plotly.express as px
 
 
-def plot_feature_importance(f_imp_df: pd.DataFrame, classifier_name: str) -> None:
+def plot_feature_importance(df: pd.DataFrame, clf_idx: int):
     """
     Creates bar plot from given feature importance DataFrame
-    :param feature_importance: pd.DataFrame - feature importance
-    :param classifier_name: str - name of classifier for caption
-    :return: None
+    :param df: pd.DataFrame - feature importance
+    :param clf_idx: int - classifier index
+    :return: fig - barplot figure
     """
-
-    ax = f_imp_df.plot.barh(figsize=(15, 10))
-    plt.title(classifier_name)
-    plt.axvline(x=0, color=".5")
-    ax.set_xlabel("Feature importance")
-    ax.yaxis.label.set_size("x-small")
-
-    plt.subplots_adjust(left=0.3)
-    plt.show()
-    return 
-
-def sns_plot_feature_importance(f_imp_df: pd.DataFrame):
-    fig, ax = plt.subplots()
-    print(f_imp_df.head())
-    sns.barplot(data=f_imp_df, ax=ax)
+    df = df.loc[clf_idx, :]
+    fig = px.bar(df, orientation="h")
+    #fig, ax = plt.subplots(figsize=(20, 20))
+    #sns.barplot(data=f_imp_df, ax=ax, errorbar="sd", orient="h")
     return fig
 
 
