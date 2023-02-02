@@ -7,7 +7,7 @@ from sklearn.model_selection import RepeatedKFold
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
 
-from backend.ml.model import train_model, predict_model, explain_model
+from backend.ml.model import train_model, predict_model, explain_model, visualize_model
 from backend.ml.preprocessing import get_train_dataset, scale_df, enrich_df, get_clean_dataset
 from backend.config import conf
 from backend.ml.utility import load_cv_clfs, save_clfs, save_scaler, load_scaler
@@ -96,6 +96,23 @@ def explain_experiment(exp_config: dict) -> list[pd.DataFrame]:
         clf_feature_importance.append(explain_model(clfs, feature_names))
 
     return clf_feature_importance
+
+
+def visualize_experiment(exp_config: dict) -> list[pd.DataFrame]:
+    classifiers = exp_config["classifiers"]
+    n_splits = exp_config["cross_validation"]["params"]["n_splits"]
+    clf_visualizations = []
+
+    scaler = load_scaler(exp_config["name"])
+    feature_names = scaler.get_feature_names_out()
+
+    class_names = ["churn", "no_churn"]
+
+    for _, c in classifiers.items():
+        clfs = load_cv_clfs(exp_config["name"], c["class_name"], n_splits)
+        clf_visualizations.append(visualize_model(clfs, feature_names, class_names))
+    
+    return clf_visualizations
 
 
 

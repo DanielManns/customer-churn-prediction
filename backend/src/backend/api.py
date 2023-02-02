@@ -3,7 +3,7 @@ import uvicorn
 from backend.config import conf
 from backend.ml.utility import load_exp_config
 from backend.ml.preprocessing import get_exp_features, get_clean_dataset
-from backend.ml.experiment import predict_experiment, explain_experiment
+from backend.ml.experiment import predict_experiment, explain_experiment, visualize_experiment
 from backend.config import Row, ExpName
 from backend.ml.utility import from_dict
 from typing import Dict
@@ -92,7 +92,7 @@ async def api_exp_predict(exp_name: ExpName, df_dict: Dict[int, Row]):
 @app.get("/{exp_name}/explain")
 async def api_exp_explain(exp_name: ExpName):
     """
-    Returns feature names for given experiment name.
+    Returns feature importance data for all classifiers in given experiment name.
     @param exp_name: experiment name
     @return list of features
     """
@@ -102,5 +102,21 @@ async def api_exp_explain(exp_name: ExpName):
     explanation = explain_experiment(exp_config)[0]
 
     return explanation.to_dict(orient=DF_DICT_FORMAT)
+
+
+@app.get("/{exp_name}/dt_data")
+async def api_exp_explain(exp_name: ExpName):
+    """
+    Returns dot_data for all DecisionTrees in given experiment name
+    @param exp_name: experiment name
+    @return dot_data
+    """
+
+    exp_config = load_exp_config(exp_name.value)
+   
+   # string data for graphviz
+    dot_data = visualize_experiment(exp_config)
+
+    return dot_data
 
 

@@ -1,7 +1,5 @@
 import matplotlib.pyplot as plt
 from sklearn import tree
-# from IPython.display import Image, display
-# display(Image(filename="causal_model.png"))
 import pandas as pd
 from sklearn.tree import BaseDecisionTree
 import seaborn as sns

@@ -6,6 +6,7 @@ import pandas as pd
 from sklearn.inspection import permutation_importance
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import BaseDecisionTree
+from sklearn import tree
 
 
 def train_model(clf: BaseDecisionTree, X: pd.DataFrame, y: pd.DataFrame, cv_method, metric) -> \
@@ -116,6 +117,19 @@ def explain_model(clfs: list[ClassifierMixin], feature_names: list[str]) -> Opti
         # raise ValueError("unexpected estimator")
 
     return feature_importance
+
+
+def visualize_model(clfs: list[BaseDecisionTree], feature_names, class_names):
+    """
+    Returns visualization data for a through cross validation obtained list of DecisionTrees.
+
+    :param clfs: [sklearn.base.BaseDecisionTree] - List of DecisionTrees from cross validation
+    :return: pd.DataFrame - feature importance
+    """
+
+    dot_data = [tree.export_graphviz(clf, feature_names=feature_names, class_names=class_names, filled=True, rounded=True, special_characters=True) for clf in clfs]
+
+    return dot_data
 
 
 def get_permutation_importance(clf: ClassifierMixin, X: pd.DataFrame, y: pd.DataFrame) -> pd.DataFrame:
