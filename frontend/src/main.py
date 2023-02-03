@@ -134,5 +134,12 @@ def run_gui():
     ui.launch(server_name=conf.frontend_host, server_port=conf.frontend_port)
 
 if __name__ == "__main__":
+    # maybe only ping backend at first request
+    # change name of explain tab to validation
+    # für demo fiktive namen ausdenken oder unique ids, und telefonnummer
+    # unique ids in prediction tab, damit prediction gemappt ist mit id
+    # stop triggering of training from frontend
+    # only plot average feature importance of dt with error bars
+    # maybe add details tab for separate views
     connect()
     run_gui()

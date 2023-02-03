@@ -114,9 +114,7 @@ async def api_exp_explain(exp_name: ExpName):
 
     exp_config = load_exp_config(exp_name.value)
    
-   # string data for graphviz
+    # string data for graphviz
     dot_data = visualize_experiment(exp_config)
 
     return dot_data
-
-
