@@ -23,7 +23,7 @@ from functools import partial
 
 EXP_NAME = "exp_no_subset"
 NUM_CLASSIFIERS = 1
-CLF_HEADERS = ["Decision Tree"]
+CLF_HEADERS = ["id", "Decision Tree"]
 ENDPOINT = f"http://{conf.backend_host}:{conf.backend_port}"
 HELLO_WORLD_ENDPOINT = f"{ENDPOINT}/"
 EXAMPLE_ENDPOINT = f"{ENDPOINT}/{EXP_NAME}/example_data"
@@ -31,6 +31,7 @@ PREDICT_ENDPOINT = f"{ENDPOINT}/{EXP_NAME}/predict"
 EXPLAIN_ENDPOINT = f"{ENDPOINT}/{EXP_NAME}/explain"
 
 DF_DICT_FORMAT = "index"
+CONNECTION = False
 
 def connect() -> bool:
     """
@@ -99,47 +100,48 @@ def run_gui():
     @return None
     """
 
-    example_df = request_examples()
-    expl = request_explanation()
-    choices = list(range(len(expl.index)))
-    importance_fn = partial(plot_feature_importance, expl)
+    CONNECTION = connect()
 
-    # hierarichal gui definition
-    with gr.Blocks() as ui:
+    if CONNECTION:
+        example_df = request_examples()
+        expl = request_explanation()
+        choices = ["avg"] + list(range(len(expl.index)))
+        importance_fn = partial(plot_feature_importance, expl)
 
-        ### Predict tab
-        with gr.Tab("Predict"):
-            with gr.Row():
-                with gr.Column():
-                    input = gr.Dataframe(row_count=(1, "dynamic"), col_count=(len(example_df.columns), "fixed"), label="Input Data", interactive=True)
-                    examples = gr.Examples([example_df], input)
-                with gr.Column():
-                    output = gr.Dataframe(row_count=(1, "dynamic"), col_count=(NUM_CLASSIFIERS, "fixed"), label="Predictions", headers=CLF_HEADERS)
-            button = gr.Button("predict")
-            button.click(request_prediction, inputs=[input], outputs=[output])
+        # Hierarichal gui definition
+        with gr.Blocks() as ui:
 
-        ### Explain tab
-        with gr.Tab("Explain"):
+            ### Predict tab
+            with gr.Tab("Predict"):
                 with gr.Row():
                     with gr.Column():
-                        input_data = gr.Dropdown(choices=choices, value=0, label="Classifier Index")
+                        input = gr.Dataframe(row_count=(1, "dynamic"), col_count=(len(example_df.columns), "fixed"), label="Input Data", interactive=True)
+                        examples = gr.Examples([example_df], input)
                     with gr.Column():
-                        exp_plot = gr.Plot(label="DecisionTree")
-                    input_data.change(fn=importance_fn, inputs=input_data, outputs=exp_plot)
+                        output = gr.Dataframe(row_count=(1, "dynamic"), col_count=(NUM_CLASSIFIERS + 1, "fixed"), label="Predictions", headers=CLF_HEADERS)
+                button = gr.Button("predict")
+                button.click(request_prediction, inputs=[input], outputs=[output])
 
-        # load data from dropdown input to plot
-        ui.load(fn=importance_fn, inputs=input_data, outputs=exp_plot)
-            
+            ### Feature Importance tab
+            with gr.Tab("Feature Importance"):
+                    with gr.Row():
+                        with gr.Column():
+                            input_data = gr.Dropdown(choices=choices, value=0, label="Tree Number")
+                        with gr.Column():
+                            exp_plot = gr.Plot(label="DecisionTree")
+                        input_data.change(fn=importance_fn, inputs=input_data, outputs=exp_plot)
 
-    ui.launch(server_name=conf.frontend_host, server_port=conf.frontend_port)
+            # load data from dropdown input to plot
+            ui.load(fn=importance_fn, inputs=input_data, outputs=exp_plot)
+                
+
+        ui.launch(server_name=conf.frontend_host, server_port=conf.frontend_port)
+    else:
+        print("Connection could not be established")
 
 if __name__ == "__main__":
-    # maybe only ping backend at first request
-    # change name of explain tab to validation
-    # für demo fiktive namen ausdenken oder unique ids, und telefonnummer
-    # unique ids in prediction tab, damit prediction gemappt ist mit id
-    # stop triggering of training from frontend
+    # add id column in left side somehow
+    # für demo interessanten example datensatz raussuchen
     # only plot average feature importance of dt with error bars
     # maybe add details tab for separate views
-    connect()
     run_gui()

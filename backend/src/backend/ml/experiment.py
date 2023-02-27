@@ -49,7 +49,7 @@ def train_experiment(exp_config: dict) -> list[list[ClassifierMixin], list[float
     return result
 
 
-def predict_experiment(exp_config: dict, X: pd.DataFrame) -> pd.DataFrame:
+def predict_experiment(exp_config: dict, df: pd.DataFrame) -> pd.DataFrame:
     """
     Runs inference for given experiment configuration.
 
@@ -58,10 +58,10 @@ def predict_experiment(exp_config: dict, X: pd.DataFrame) -> pd.DataFrame:
     :return: pd.DataFrame - Predictions
     """
 
-    X = enrich_df(X)
+    df = enrich_df(df)
     scaler = load_scaler(exp_config["name"])
 
-    X, _ = scale_df(X, scaler)
+    X, _ = scale_df(df, scaler)
     
     classifiers = exp_config["classifiers"]
     n_splits = exp_config["cross_validation"]["params"]["n_splits"]
@@ -76,8 +76,10 @@ def predict_experiment(exp_config: dict, X: pd.DataFrame) -> pd.DataFrame:
         std_clf_preds.append(std_pred)
 
     mean_clf_preds = np.array(mean_clf_preds).T
-    clf_names = [clf_name + "_mean_pred" for clf_name in list(classifiers.keys())]
-    df = pd.DataFrame(data=mean_clf_preds, index=np.arange(X.shape[0]), columns=clf_names)
+
+    data = {"id": df["id"], "DecisionTreeClassifier": mean_clf_preds.squeeze()}
+
+    df = pd.DataFrame(data=data, index=np.arange(df.shape[0]))
 
     return df
 

@@ -6,15 +6,21 @@ import seaborn as sns
 import plotly.express as px
 
 
-def plot_feature_importance(df: pd.DataFrame, clf_idx: int):
+def plot_feature_importance(df: pd.DataFrame, clf_idx):
     """
     Creates bar plot from given feature importance DataFrame
     :param df: pd.DataFrame - feature importance
     :param clf_idx: int - classifier index
     :return: fig - barplot figure
     """
-    df = df.loc[clf_idx, :]
-    fig = px.bar(df, orientation="h")
+    if clf_idx != "avg":
+        df = df.loc[clf_idx, :]
+        fig = px.bar(df, orientation="h")
+    else:
+        mean = df.mean(axis=0)
+        sd = df.std(axis=0)
+        fig = px.bar(x = df.columns, y = mean.to_numpy(), orientation="h", error_y=sd.to_numpy())
+    
     #fig, ax = plt.subplots(figsize=(20, 20))
     #sns.barplot(data=f_imp_df, ax=ax, errorbar="sd", orient="h")
     return fig

@@ -114,6 +114,9 @@ def enrich_df(df: pd.DataFrame) -> pd.DataFrame:
                 df[col_name] = df.loc[:, req[0]].divide(df.loc[:, req[1]]).round(2)
                 df[col_name] = df[col_name].fillna(0.0)
 
+    hash_values = df.apply(lambda x: round(abs(hash(tuple(x))), 5), axis=1)
+    df["id"] = hash_values
+
     return df
 
 
