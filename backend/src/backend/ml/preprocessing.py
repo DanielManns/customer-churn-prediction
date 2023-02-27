@@ -43,6 +43,19 @@ def get_clean_dataset(exp_config: dict) -> list[pd.DataFrame, pd.DataFrame]:
     return X, y
 
 
+def get_example_dataset(exp_config: dict) -> list[pd.DataFrame, pd.DataFrame]:
+    X, y = get_clean_dataset(exp_config)
+
+    # mock id
+    hash_values = X.apply(lambda x: int(abs(hash(tuple(x))) / 1e14), axis=1)
+    X["id"] = hash_values
+
+    # put id in front
+    X = X.loc[:, ["id"] + list(X.columns)]
+
+    return X, y
+
+
 def scale_df(X: pd.DataFrame, col_transformer: ColumnTransformer=None) -> list[pd.DataFrame, pd.DataFrame, ColumnTransformer]:
     """
     Transforms Dataframe and returns ColumnTransformer.
@@ -114,8 +127,7 @@ def enrich_df(df: pd.DataFrame) -> pd.DataFrame:
                 df[col_name] = df.loc[:, req[0]].divide(df.loc[:, req[1]]).round(2)
                 df[col_name] = df[col_name].fillna(0.0)
 
-    hash_values = df.apply(lambda x: round(abs(hash(tuple(x))), 5), axis=1)
-    df["id"] = hash_values
+    
 
     return df
 

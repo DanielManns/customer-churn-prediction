@@ -2,7 +2,7 @@ from fastapi import FastAPI
 import uvicorn
 from backend.config import conf
 from backend.ml.utility import load_exp_config
-from backend.ml.preprocessing import get_exp_features, get_clean_dataset
+from backend.ml.preprocessing import get_exp_features, get_clean_dataset, get_example_dataset
 from backend.ml.experiment import predict_experiment, explain_experiment, visualize_experiment
 from backend.config import Row, ExpName
 from backend.ml.utility import from_dict
@@ -49,7 +49,7 @@ async def api_exp_example_data(exp_name: ExpName):
     """
     
     exp_config = load_exp_config(exp_name.value)
-    X, y = get_clean_dataset(exp_config)
+    X, y = get_example_dataset(exp_config)
     df_dict = X.head(NUM_EXAMPLES).to_dict(orient=DF_DICT_FORMAT)
     
     return df_dict
@@ -82,8 +82,16 @@ async def api_exp_predict(exp_name: ExpName, df_dict: Dict[int, Row]):
     df_dict = dict(zip(df_dict.keys(), map(BaseModel.dict, df_dict.values())))
 
     df = pd.DataFrame.from_dict(df_dict, orient=DF_DICT_FORMAT)
+
+    # drop mocked id
+    ids = df.loc[:, ["id"]]
+    df.drop(columns=["id"])
     
     preds = predict_experiment(exp_config, df)
+
+    # put id in front
+    preds["id"] = ids
+    df = df.loc[:, ["id"] + list(df.columns)]
 
     preds_dict = preds.to_dict(orient=DF_DICT_FORMAT)
     return preds_dict

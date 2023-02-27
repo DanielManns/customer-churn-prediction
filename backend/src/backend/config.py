@@ -12,6 +12,7 @@ class ExpName(str, Enum):
     exp_subset = "exp_subset"
 
 class Row(BaseModel):
+    id: Union[int, None] = None
     state: Union[str, None] = None
     account_length: Union[int, None] = None
     area_code: Union[str, None] = None

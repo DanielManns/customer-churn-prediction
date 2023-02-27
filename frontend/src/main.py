@@ -67,7 +67,7 @@ def request_examples() -> pd.DataFrame:
 
     response = requests.get(EXAMPLE_ENDPOINT)
     return pd.read_json(response.text, orient=DF_DICT_FORMAT)
-    
+
 
 def request_prediction(input_df: pd.DataFrame) -> pd.DataFrame:
     """
