@@ -14,11 +14,9 @@ from functools import partial
 #  -> sklearn.tree export_graphviz
 #  Add tree plot
 #  Add button for type of graph
-#  6. Obtain clf explanation from backend (feature importance)
 #  7. Display clf explanation with plots in third tab
-#  1. Configure experiment in first tab
-#  2. Send experiment data to backend
-#  - (Optionally) Display error message when input incorrect
+# fix average plot
+# add tree plot
 
 
 EXP_NAME = "exp_no_subset"

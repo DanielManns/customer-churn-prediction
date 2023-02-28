@@ -4,6 +4,7 @@ import pandas as pd
 from sklearn.tree import BaseDecisionTree
 import seaborn as sns
 import plotly.express as px
+import numpy as np
 
 
 def plot_feature_importance(df: pd.DataFrame, clf_idx):
@@ -13,13 +14,19 @@ def plot_feature_importance(df: pd.DataFrame, clf_idx):
     :param clf_idx: int - classifier index
     :return: fig - barplot figure
     """
+
+    df["clf_idx"] = list(df.index)
+    df = df.melt(id_vars=["clf_idx"], value_vars=list(df.columns), var_name="Feature", value_name="Importance")
     if clf_idx != "avg":
-        df = df.loc[clf_idx, :]
-        fig = px.bar(df, orientation="h")
+        df = df.loc[df["clf_idx"] == clf_idx]
+        df = df.sort_values(by="Importance")
+        fig = px.bar(df, x="Importance", y="Feature", orientation="h", range_x=[0,1])
     else:
-        mean = df.mean(axis=0)
-        sd = df.std(axis=0)
-        fig = px.bar(x = df.columns, y = mean.to_numpy(), orientation="h", error_y=sd.to_numpy())
+        mean = df.groupby("Feature")["Importance"].mean()
+        std = df.groupby("Feature")["Importance"].std()
+        df = pd.DataFrame({"Feature": list(mean.index), "Mean_Importance": list(mean), "Std": list(std)})
+        df = df.sort_values(by="Mean_Importance")
+        fig = px.bar(df, x="Mean_Importance", y="Feature", orientation="h", error_x="Std", range_x=[0,1])
     
     #fig, ax = plt.subplots(figsize=(20, 20))
     #sns.barplot(data=f_imp_df, ax=ax, errorbar="sd", orient="h")
