@@ -4,11 +4,12 @@ from backend.config import conf
 from backend.ml.utility import load_exp_config
 from backend.ml.preprocessing import get_exp_features, get_clean_dataset, get_example_dataset
 from backend.ml.experiment import predict_experiment, explain_experiment, visualize_experiment
-from backend.config import Row, ExpName
+from backend.config import Row, PredRow, ImportanceRow, ExpName
 from backend.ml.utility import from_dict
 from typing import Dict
 import pandas as pd
 from pydantic import BaseModel
+from typing import List
 
 app = FastAPI()
 NUM_EXAMPLES = 10
@@ -41,7 +42,7 @@ async def root():
 
 
 @app.get("/{exp_name}/example_data")
-async def api_exp_example_data(exp_name: ExpName):
+async def api_exp_example_data(exp_name: ExpName) -> Dict[int, Row]:
     """
     Returns example data for given experment name.
     @param exp_name: experiment name
@@ -56,7 +57,7 @@ async def api_exp_example_data(exp_name: ExpName):
 
 
 @app.get("/{exp_name}/features")
-async def api_exp_features(exp_name: ExpName):
+async def api_exp_features(exp_name: ExpName) -> List[str]:
     """
     Returns feature names for given experiment name.
     @param exp_name: experiment name
@@ -68,7 +69,7 @@ async def api_exp_features(exp_name: ExpName):
 
 
 @app.post("/{exp_name}/predict")
-async def api_exp_predict(exp_name: ExpName, df_dict: Dict[int, Row]):
+async def api_exp_predict(exp_name: ExpName, df_dict: Dict[int, Row]) -> Dict[int, PredRow]:
     """
     Returns predictions for posted DataFrame.
     @param exp_name: experiment name
@@ -98,7 +99,7 @@ async def api_exp_predict(exp_name: ExpName, df_dict: Dict[int, Row]):
 
 
 @app.get("/{exp_name}/explain")
-async def api_exp_explain(exp_name: ExpName):
+async def api_exp_explain(exp_name: ExpName) -> Dict[int, ImportanceRow]:
     """
     Returns feature importance data for all classifiers in given experiment name.
     @param exp_name: experiment name
@@ -123,6 +124,7 @@ async def api_exp_explain(exp_name: ExpName):
     exp_config = load_exp_config(exp_name.value)
    
     # string data for graphviz
-    dot_data = visualize_experiment(exp_config)
+    dot_data = visualize_experiment(exp_config)[0]
+
 
     return dot_data

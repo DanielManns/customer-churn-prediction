@@ -7,6 +7,7 @@ from sklearn.inspection import permutation_importance
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import BaseDecisionTree
 from sklearn import tree
+from typing import List
 
 
 def train_model(clf: BaseDecisionTree, X: pd.DataFrame, y: pd.DataFrame, cv_method, metric) -> \
@@ -119,7 +120,7 @@ def explain_model(clfs: list[ClassifierMixin], feature_names: list[str]) -> Opti
     return feature_importance
 
 
-def visualize_model(clfs: list[BaseDecisionTree], feature_names, class_names):
+def visualize_model(clfs: list[BaseDecisionTree], feature_names, class_names) -> List[str]:
     """
     Returns visualization data for a through cross validation obtained list of DecisionTrees.
 

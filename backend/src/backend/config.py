@@ -33,6 +33,37 @@ class Row(BaseModel):
     total_intl_charge: Union[float, None] = None
     number_customer_service_calls: Union[int, None] = None
 
+class PredRow(BaseModel):
+    id: Union[int, None] = None
+    pred: Union[float, None] = None
+
+class ImportanceRow(BaseModel):
+    state: Union[str, None] = None
+    account_length: Union[int, None] = None
+    area_code: Union[str, None] = None
+    international_plan: Union[bool, None] = None
+    voice_mail_plan: Union[bool, None] = None
+    number_vmail_messages: Union[int, None] = None
+    total_day_minutes: Union[float, None] = None
+    total_day_calls: Union[int, None] = None
+    total_day_charge: Union[float, None] = None
+    total_eve_minutes: Union[float, None] = None
+    total_eve_calls: Union[int, None] = None
+    total_eve_charge: Union[float, None] = None
+    total_night_minutes: Union[float, None] = None
+    total_night_calls: Union[int, None] = None
+    total_night_charge: Union[float, None] = None
+    total_intl_minutes: Union[float, None] = None
+    total_intl_calls: Union[int, None] = None
+    total_intl_charge: Union[float, None] = None
+    number_customer_service_calls: Union[int, None] = None
+    total_reg_charge: Union[float, None] = None
+    total_reg_calls: Union[int, None] = None
+    total_reg_minutes: Union[float, None] = None
+    avg_intl_call_duration: Union[float, None] = None
+    avg_day_call_duration: Union[float, None] = None
+    avg_eve_call_duration: Union[float, None] = None
+    avg_night_call_duration: Union[float, None] = None
 
 @dataclass
 class Features:

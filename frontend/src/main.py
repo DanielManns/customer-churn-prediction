@@ -5,8 +5,10 @@ import requests
 import pandas as pd
 import time
 from frontend.plotting import plot_feature_importance, plot_feature_importance
-from frontend.plotting import plot_dt
+from frontend.plotting import plot_dt, plot_dot_dt
 from functools import partial
+from typing import List
+import json
 
 # TODO:
 #  1. Obtain image plot from backend? as bytes object / check if model can be send as bytes object
@@ -21,12 +23,13 @@ from functools import partial
 
 EXP_NAME = "exp_no_subset"
 NUM_CLASSIFIERS = 1
-CLF_HEADERS = ["id", "Decision Tree"]
+CLF_HEADERS = ["id", "DecisionTreeClassifier"]
 ENDPOINT = f"http://{conf.backend_host}:{conf.backend_port}"
 HELLO_WORLD_ENDPOINT = f"{ENDPOINT}/"
 EXAMPLE_ENDPOINT = f"{ENDPOINT}/{EXP_NAME}/example_data"
 PREDICT_ENDPOINT = f"{ENDPOINT}/{EXP_NAME}/predict"
-EXPLAIN_ENDPOINT = f"{ENDPOINT}/{EXP_NAME}/explain"
+FEATURE_IMPORTANCE_ENDPOINT = f"{ENDPOINT}/{EXP_NAME}/explain"
+DT_ENDPOINT = f"{ENDPOINT}/{EXP_NAME}/dt_data"
 
 DF_DICT_FORMAT = "index"
 CONNECTION = False
@@ -81,15 +84,21 @@ def request_prediction(input_df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def request_explanation() -> pd.DataFrame:
+def request_feature_importance() -> pd.DataFrame:
     """
     Requests explanation for experiment from backend.
     @return pd.DataFrame - explanations
     """
 
-    response = requests.get(EXPLAIN_ENDPOINT)
+    response = requests.get(FEATURE_IMPORTANCE_ENDPOINT)
     df = pd.read_json(response.text, orient=DF_DICT_FORMAT)
     return df
+
+def request_dts() -> List[str]:
+    response = requests.get(DT_ENDPOINT)
+    decoded = json.loads(response.text)
+    return decoded
+
 
 
 def run_gui():
@@ -101,10 +110,13 @@ def run_gui():
     CONNECTION = connect()
 
     if CONNECTION:
+        dot_dts = request_dts()
         example_df = request_examples()
-        expl = request_explanation()
-        choices = ["avg"] + list(range(len(expl.index)))
+        expl = request_feature_importance()
+        choices = list(range(len(expl.index)))
+        importance_choices = ["Mean"] + list(range(len(expl.index)))
         importance_fn = partial(plot_feature_importance, expl)
+        dt_fn = partial(plot_dot_dt, dot_dts)
 
         # Hierarichal gui definition
         with gr.Blocks() as ui:
@@ -124,13 +136,24 @@ def run_gui():
             with gr.Tab("Feature Importance"):
                     with gr.Row():
                         with gr.Column():
-                            input_data = gr.Dropdown(choices=choices, value=0, label="Tree Number")
+                            importance_input = gr.Dropdown(choices=importance_choices, value=0, label="Tree Number")
                         with gr.Column():
-                            exp_plot = gr.Plot(label="DecisionTree")
-                        input_data.change(fn=importance_fn, inputs=input_data, outputs=exp_plot)
+                            importance_plot = gr.Plot()
+                        importance_input.change(fn=importance_fn, inputs=importance_input, outputs=importance_plot)
+
+            ### Decision Tree tab
+            with gr.Tab("Decision Tree"):
+                    with gr.Row():
+                        with gr.Column():
+                            dt_input = gr.Dropdown(choices=choices, value=0, label="Tree Number")
+                        with gr.Column():
+                            dt_plot = gr.Plot(label="DecisionTree")
+                        dt_input.change(fn=dt_fn, inputs=dt_input, outputs=dt_plot)
 
             # load data from dropdown input to plot
-            ui.load(fn=importance_fn, inputs=input_data, outputs=exp_plot)
+            ui.load(fn=importance_fn, inputs=importance_input, outputs=importance_plot)
+            ui.load(fn=dt_fn, inputs=dt_input, outputs=dt_plot)
+
                 
 
         ui.launch(server_name=conf.frontend_host, server_port=conf.frontend_port)

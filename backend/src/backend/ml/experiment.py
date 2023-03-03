@@ -11,6 +11,7 @@ from backend.ml.model import train_model, predict_model, explain_model, visualiz
 from backend.ml.preprocessing import get_train_dataset, scale_df, enrich_df, get_clean_dataset
 from backend.config import conf
 from backend.ml.utility import load_cv_clfs, save_clfs, save_scaler, load_scaler
+from typing import List
 
 
 CV_METHOD = RepeatedKFold
@@ -100,7 +101,7 @@ def explain_experiment(exp_config: dict) -> list[pd.DataFrame]:
     return clf_feature_importance
 
 
-def visualize_experiment(exp_config: dict) -> list[pd.DataFrame]:
+def visualize_experiment(exp_config: dict) -> List[List[str]]:
     classifiers = exp_config["classifiers"]
     n_splits = exp_config["cross_validation"]["params"]["n_splits"]
     clf_visualizations = []

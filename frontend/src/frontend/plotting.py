@@ -5,6 +5,7 @@ from sklearn.tree import BaseDecisionTree
 import seaborn as sns
 import plotly.express as px
 import numpy as np
+from typing import List
 
 
 def plot_feature_importance(df: pd.DataFrame, clf_idx):
@@ -17,7 +18,7 @@ def plot_feature_importance(df: pd.DataFrame, clf_idx):
 
     df["clf_idx"] = list(df.index)
     df = df.melt(id_vars=["clf_idx"], value_vars=list(df.columns), var_name="Feature", value_name="Importance")
-    if clf_idx != "avg":
+    if isinstance(clf_idx, int):
         df = df.loc[df["clf_idx"] == clf_idx]
         df = df.sort_values(by="Importance")
         fig = px.bar(df, x="Importance", y="Feature", orientation="h", range_x=[0,1])
@@ -46,6 +47,9 @@ def plot_dt(dt: BaseDecisionTree, feature_names: list[str], class_names: list[st
     fig, ax = plt.subplots()
     tree.plot_tree(dt, feature_names=feature_names, class_names=class_names, ax=ax, filled=True, proportion=True)
     plt.show()
+
+def plot_dot_dt(dot_dts: List[str], clf_idx):
+    return
 
 
 def plot_alpha_score_curve(train_scores: list[float], test_scores: list[float], ccp_alphas: list[float]) -> None:
