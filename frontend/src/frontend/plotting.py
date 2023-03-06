@@ -1,11 +1,13 @@
 import matplotlib.pyplot as plt
 from sklearn import tree
+from skimage import io
 import pandas as pd
 from sklearn.tree import BaseDecisionTree
 import seaborn as sns
 import plotly.express as px
 import numpy as np
 from typing import List
+import graphviz
 
 
 def plot_feature_importance(df: pd.DataFrame, clf_idx):
@@ -49,7 +51,13 @@ def plot_dt(dt: BaseDecisionTree, feature_names: list[str], class_names: list[st
     plt.show()
 
 def plot_dot_dt(dot_dts: List[str], clf_idx):
-    return
+    g = graphviz.Source(dot_dts[clf_idx], format="jpeg")
+    p = g.render("tree")
+    img = io.imread(p)
+    fig = px.imshow(img, binary_format="jpeg")
+    return fig
+
+
 
 
 def plot_alpha_score_curve(train_scores: list[float], test_scores: list[float], ccp_alphas: list[float]) -> None:
