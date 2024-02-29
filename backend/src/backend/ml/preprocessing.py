@@ -6,47 +6,57 @@ import numpy as np
 from backend.config import conf, Features, ImpFeatures
 from backend.ml.utility import load_train_dataset, load_test_dataset
 from typing import Optional
+#test 
 
-
-def get_preprocessed_dataset(exp_config: dict, train: bool) -> list[pd.DataFrame, Optional[pd.DataFrame]]:
+def get_train_dataset(exp_config: dict) -> list[pd.DataFrame, pd.DataFrame]:
     """
-    Returns preprocessed categorical-, continuous-, and mixed DataFrame as well as labels.
+    Returns enriched, but not scaled dataset for given configuration
 
     :rtype: object
     :param exp_config: dict - experimental configuration
-    :param train: bool - whether to load train dataset
     :return: [pd.DataFrame, pd.DataFrame] - X, y
     """
 
-    y = None
+    X, y = get_clean_dataset(exp_config)
+    X = enrich_df(X)
 
-    if train:
-        raw_df = load_train_dataset()
-        X = apply_preprocessing(raw_df)
-        y = X[conf.target_name]
-        X = X.drop(columns=[conf.target_name])
-    else:
-        raw_df = load_test_dataset()
-        X = apply_preprocessing(raw_df)
+    return X, y
 
-    # subset important variables
-    features = get_features(exp_config)
+def get_clean_dataset(exp_config: dict) -> list[pd.DataFrame, pd.DataFrame]:
+    """
+    Returns clean, but not enriched nor scaled dataset for given configuration
+
+    :rtype: object
+    :param exp_config: dict - experimental configuration
+    :return: [pd.DataFrame, pd.DataFrame] - X, y
+    """
+
+    raw_df = load_train_dataset()
+    X = clean_df(raw_df)
+
+    y = X[conf.target_name]
+    X = X.drop(columns=[conf.target_name])
+
+    features = get_exp_features(exp_config)
     X = X.loc[:, features]
 
     return X, y
 
 
-def apply_preprocessing(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Applies data cleaning as well as feature engineering to given df.
+def get_example_dataset(exp_config: dict) -> list[pd.DataFrame, pd.DataFrame]:
+    X, y = get_clean_dataset(exp_config)
 
-    :param df: Pandas DataFrame - raw DataFrame
-    :return: Pandas DataFrame - preprocessed DataFrame
-    """
-    return enrich_df(clean_df(df))
+    # mock id
+    hash_values = X.apply(lambda x: int(abs(hash(tuple(x))) / 1e14), axis=1)
+    X["id"] = hash_values
+
+    # put id in front
+    X = X.loc[:, ["id"] + list(X.columns)]
+
+    return X, y
 
 
-def scale_df(X: pd.DataFrame, y: pd.DataFrame) -> list[pd.DataFrame, pd.DataFrame, ColumnTransformer]:
+def scale_df(X: pd.DataFrame, col_transformer: ColumnTransformer=None) -> list[pd.DataFrame, pd.DataFrame, ColumnTransformer]:
     """
     Transforms Dataframe and returns ColumnTransformer.
 
@@ -54,9 +64,12 @@ def scale_df(X: pd.DataFrame, y: pd.DataFrame) -> list[pd.DataFrame, pd.DataFram
     :param y: pd.DataFrame - labels
     :return: [pd.DataFrame, pd.DataFrame, ColumnTransformer]
     """
-    col_transformer = create_scaler(X)
-    X = col_transformer.fit_transform(X)
-    return X, y, col_transformer
+    if not col_transformer:
+        col_transformer = create_scaler(X)
+        X = col_transformer.fit_transform(X)
+    else:
+        X = col_transformer.transform(X)
+    return X, col_transformer
 
 
 def clean_df(df: pd.DataFrame) -> pd.DataFrame:
@@ -85,27 +98,36 @@ def clean_df(df: pd.DataFrame) -> pd.DataFrame:
 
 def enrich_df(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Enriches raw DataFrame with additional features used by ml.
+    Enriches cleaned DataFrame with additional features used by models.
 
-    :param df: Pandas DataFrame - raw DataFrame
-    :return: Pandas DataFrame - raw DataFrame with additional features
+    :param df: Pandas DataFrame - cleaned DataFrame
+    :return: Pandas DataFrame - cleaned and enriched DataFrame
     """
+    
+    sum_cols = {
+        "total_reg_calls": ["total_eve_calls", "total_night_calls", "total_day_calls"],
+        "total_reg_minutes": ["total_eve_minutes", "total_night_minutes", "total_day_minutes"],
+        "total_reg_charge": ["total_eve_charge","total_night_charge","total_day_charge"]
+    }
 
-    # sum regular calls, minutes and charge
-    df["total_reg_calls"] = df["total_eve_calls"] + df["total_night_calls"] + df["total_day_calls"]
-    df["total_reg_minutes"] = df["total_eve_minutes"] + df["total_night_minutes"] + df["total_day_minutes"]
-    df["total_reg_charge"] = df["total_eve_charge"] + df["total_night_charge"] + df["total_day_charge"]
+    div_cols = {
+        "avg_day_call_duration": ["total_day_minutes", "total_day_calls"],
+        "avg_eve_call_duration": ["total_eve_minutes", "total_eve_calls"],
+        "avg_night_call_duration": ["total_night_minutes", "total_night_calls"],
+        "avg_intl_call_duration": ["total_intl_minutes", "total_intl_calls"]
+    }
 
-    # calculate average call duration for each daytime
-    df["avg_day_call_duration"] = df["total_day_minutes"].divide(df["total_day_calls"]).round(2)
-    df["avg_eve_call_duration"] = df["total_eve_minutes"].divide(df["total_eve_calls"]).round(2)
-    df["avg_night_call_duration"] = df["total_night_minutes"].divide(df["total_night_calls"]).round(2)
-    df["avg_intl_call_duration"] = df["total_intl_minutes"].divide(df["total_intl_calls"]).round(2)
+    new_cols = {**sum_cols, **div_cols}
 
-    avg_group = ["avg_day_call_duration", "avg_eve_call_duration", "avg_night_call_duration", "avg_intl_call_duration"]
+    for col_name, req in new_cols.items():
+        if set(req).issubset(df.columns):
+            if col_name in sum_cols.keys():
+                df[col_name] = df.loc[:, req].sum(axis=1)
+            elif col_name in div_cols.keys():
+                df[col_name] = df.loc[:, req[0]].divide(df.loc[:, req[1]]).round(2)
+                df[col_name] = df[col_name].fillna(0.0)
 
-    # Fill all na values from zero division
-    df[avg_group] = df[avg_group].fillna(value=0.0)
+    
 
     return df
 
@@ -114,7 +136,7 @@ def create_scaler(df: pd.DataFrame) -> ColumnTransformer:
     """
     Create column transformer for sklearn ml/pipeline.
 
-    :param df: Pandas DataFrame - clean and enriched DataFrame
+    :param df: Pandas DataFrame - cleaned and enriched DataFrame
     :return: sklearn.compose ColumnTransformer - ColumnTransformer
     """
 
@@ -135,30 +157,16 @@ def create_scaler(df: pd.DataFrame) -> ColumnTransformer:
     return col_transformer
 
 
-def get_features(exp_config: dict) -> list:
+def get_exp_features(exp_config: dict) -> list[str]:
+    """
+    Returns feature names for given configuration.
+
+    :param exp_config: dict - eperimental configuration
+    :return: list[str] - list of feature names
+    """
+
     if exp_config["features"]["is_subset"]:
         features = list(ImpFeatures.__annotations__.keys())
     else:
         features = list(Features.__annotations__.keys())
     return features
-
-
-def get_cat_features(df: pd.DataFrame) -> list:
-    """
-    Returns categorical variables of given DataFrame.
-
-    :param df: Pandas DataFrame - DataFrame
-    :return: String [] - List of categorical column names
-    """
-
-    return list(df.columns[df.dtypes == "category"])
-
-
-def get_con_features(df: pd.DataFrame) -> list:
-    """
-    Returns continuous variables of given DataFrame.
-
-    :param df: Pandas DataFrame - DataFrame
-    :return: String [] - List of continuous column names
-    """
-    return list(df.select_dtypes([np.number]).columns)
