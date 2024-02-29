@@ -1,1 +1,6 @@
-test: "Hello World!"
+backend_host: "backend"
+backend_port: 8000
+frontend_host: "frontend"
+frontend_port: 7860
+timeout: 30
+retry_interval: 1

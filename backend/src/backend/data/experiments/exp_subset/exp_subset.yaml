@@ -12,11 +12,11 @@ classifiers:
 #        params:
 #            alpha: 1.0
 
-    LogisticRegression:
-        class_name: "LogisticRegression"
-        type: "mixed"
-        params:
-            max_iter: 500
+    # LogisticRegression:
+    #     class_name: "LogisticRegression"
+    #     type: "mixed"
+    #     params:
+    #         max_iter: 500
 
     DecisionTree:
         class_name: "DecisionTreeClassifier"

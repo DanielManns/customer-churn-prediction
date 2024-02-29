@@ -7,7 +7,13 @@ from pathlib import Path
 
 @dataclass
 class FrontendConfig:
-    test: str
+    backend_host: str
+    backend_port: int
+    frontend_host: str
+    frontend_port: int
+    timeout: int
+    retry_interval: int
+
 
     @classmethod
     def from_yaml(cls):
@@ -19,3 +25,5 @@ class FrontendConfig:
         }
 
         return from_dict(data_class=FrontendConfig, data=data, config=Config(type_hooks=converters))
+
+conf = FrontendConfig.from_yaml()

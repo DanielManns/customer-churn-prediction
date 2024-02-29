@@ -3,7 +3,67 @@ from dataclasses import dataclass
 from dacite import from_dict, Config
 from yaml import safe_load
 from pathlib import Path
+from typing import Union
+from pydantic import BaseModel
+from enum import Enum
 
+class ExpName(str, Enum):
+    exp_no_subset = "exp_no_subset"
+    exp_subset = "exp_subset"
+
+class Row(BaseModel):
+    id: Union[int, None] = None
+    state: Union[str, None] = None
+    account_length: Union[int, None] = None
+    area_code: Union[str, None] = None
+    international_plan: Union[bool, None] = None
+    voice_mail_plan: Union[bool, None] = None
+    number_vmail_messages: Union[int, None] = None
+    total_day_minutes: Union[float, None] = None
+    total_day_calls: Union[int, None] = None
+    total_day_charge: Union[float, None] = None
+    total_eve_minutes: Union[float, None] = None
+    total_eve_calls: Union[int, None] = None
+    total_eve_charge: Union[float, None] = None
+    total_night_minutes: Union[float, None] = None
+    total_night_calls: Union[int, None] = None
+    total_night_charge: Union[float, None] = None
+    total_intl_minutes: Union[float, None] = None
+    total_intl_calls: Union[int, None] = None
+    total_intl_charge: Union[float, None] = None
+    number_customer_service_calls: Union[int, None] = None
+
+class PredRow(BaseModel):
+    id: Union[int, None] = None
+    pred: Union[float, None] = None
+
+class ImportanceRow(BaseModel):
+    state: Union[str, None] = None
+    account_length: Union[int, None] = None
+    area_code: Union[str, None] = None
+    international_plan: Union[bool, None] = None
+    voice_mail_plan: Union[bool, None] = None
+    number_vmail_messages: Union[int, None] = None
+    total_day_minutes: Union[float, None] = None
+    total_day_calls: Union[int, None] = None
+    total_day_charge: Union[float, None] = None
+    total_eve_minutes: Union[float, None] = None
+    total_eve_calls: Union[int, None] = None
+    total_eve_charge: Union[float, None] = None
+    total_night_minutes: Union[float, None] = None
+    total_night_calls: Union[int, None] = None
+    total_night_charge: Union[float, None] = None
+    total_intl_minutes: Union[float, None] = None
+    total_intl_calls: Union[int, None] = None
+    total_intl_charge: Union[float, None] = None
+    number_customer_service_calls: Union[int, None] = None
+    total_reg_charge: Union[float, None] = None
+    total_reg_calls: Union[int, None] = None
+    total_reg_minutes: Union[float, None] = None
+    avg_intl_call_duration: Union[float, None] = None
+    avg_day_call_duration: Union[float, None] = None
+    avg_eve_call_duration: Union[float, None] = None
+    avg_night_call_duration: Union[float, None] = None
 
 @dataclass
 class Features:
@@ -34,8 +94,12 @@ class ImpFeatures:
     voice_mail_plan: bool
     number_vmail_messages: int
     number_customer_service_calls: int
-    total_reg_minutes: float
-    total_reg_charge: float
+    total_day_minutes: float
+    total_eve_minutes: float
+    total_night_minutes: float
+    total_day_charge: float
+    total_eve_charge: float
+    total_night_charge: float
 
 
 @dataclass

@@ -6,10 +6,12 @@ import pandas as pd
 from sklearn.inspection import permutation_importance
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import BaseDecisionTree
+from sklearn import tree
+from typing import List
 
 
 def train_model(clf: BaseDecisionTree, X: pd.DataFrame, y: pd.DataFrame, cv_method, metric) -> \
-        list[[ClassifierMixin], [float], [float]]:
+        list[list[ClassifierMixin], list[float], list[float]]:
     """
     Applies cross validation to given pipeline, data and labels. This includes training and evaluation.
 
@@ -72,7 +74,7 @@ def predict_model(clfs: list[ClassifierMixin], X: pd.DataFrame) -> list[float, f
     :return: [float, float] - mean and standard deviation of ensemble prediction
     """
 
-    preds = np.array([clf.predict_exp(X) for clf in clfs])
+    preds = np.array([clf.predict(X) for clf in clfs])
     return preds.mean(axis=0), preds.std(axis=0)
 
 
@@ -100,11 +102,35 @@ def explain_model(clfs: list[ClassifierMixin], feature_names: list[str]) -> Opti
             ],
             columns=feature_names,
         )
+
+        # sum categorical features
+        state_cols = feature_importance.columns[list(map(lambda x: "state" in x, feature_importance.columns))]
+        area_code_cols = feature_importance.columns[list(map(lambda x: "area_code" in x, feature_importance.columns))]
+        if len(state_cols) > 0:
+            feature_importance["state"] = feature_importance.loc[:, state_cols].sum(axis=1)
+            feature_importance = feature_importance.drop(columns=state_cols)
+            
+        if len(area_code_cols) > 0:
+            feature_importance["area_code"] = feature_importance.loc[:, area_code_cols].sum(axis=1)
+            feature_importance = feature_importance.drop(columns=area_code_cols)
     else:
         feature_importance = None
         # raise ValueError("unexpected estimator")
 
     return feature_importance
+
+
+def visualize_model(clfs: list[BaseDecisionTree], feature_names, class_names) -> List[str]:
+    """
+    Returns visualization data for a through cross validation obtained list of DecisionTrees.
+
+    :param clfs: [sklearn.base.BaseDecisionTree] - List of DecisionTrees from cross validation
+    :return: pd.DataFrame - feature importance
+    """
+
+    dot_data = [tree.export_graphviz(clf, feature_names=feature_names, class_names=class_names, filled=True, rounded=True, special_characters=True) for clf in clfs]
+
+    return dot_data
 
 
 def get_permutation_importance(clf: ClassifierMixin, X: pd.DataFrame, y: pd.DataFrame) -> pd.DataFrame:

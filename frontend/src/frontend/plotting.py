@@ -1,30 +1,42 @@
 import matplotlib.pyplot as plt
 from sklearn import tree
-# from IPython.display import Image, display
-# display(Image(filename="causal_model.png"))
+from skimage import io
 import pandas as pd
 from sklearn.tree import BaseDecisionTree
+import seaborn as sns
+import plotly.express as px
+import numpy as np
+from typing import List
+import graphviz
 
 
-def plot_feature_importance(feature_importance: pd.DataFrame, classifier_name: str) -> None:
+def plot_feature_importance(df: pd.DataFrame, clf_idx):
     """
     Creates bar plot from given feature importance DataFrame
-    :param feature_importance: pd.DataFrame - feature importance
-    :param classifier_name: str - name of classifier for caption
-    :return: None
+    :param df: pd.DataFrame - feature importance
+    :param clf_idx: int - classifier index
+    :return: fig - barplot figure
     """
 
-    ax = feature_importance.plot.barh(figsize=(15, 10))
-    plt.title(classifier_name)
-    plt.axvline(x=0, color=".5")
-    ax.set_xlabel("Feature importance")
-    ax.yaxis.label.set_size("x-small")
+    df["clf_idx"] = list(df.index)
+    df = df.melt(id_vars=["clf_idx"], value_vars=list(df.columns), var_name="Feature", value_name="Importance")
+    if isinstance(clf_idx, int):
+        df = df.loc[df["clf_idx"] == clf_idx]
+        df = df.sort_values(by="Importance")
+        fig = px.bar(df, x="Importance", y="Feature", orientation="h", range_x=[0,1])
+    else:
+        mean = df.groupby("Feature")["Importance"].mean()
+        std = df.groupby("Feature")["Importance"].std()
+        df = pd.DataFrame({"Feature": list(mean.index), "Mean_Importance": list(mean), "Std": list(std)})
+        df = df.sort_values(by="Mean_Importance")
+        fig = px.bar(df, x="Mean_Importance", y="Feature", orientation="h", error_x="Std", range_x=[0,1])
+    
+    #fig, ax = plt.subplots(figsize=(20, 20))
+    #sns.barplot(data=f_imp_df, ax=ax, errorbar="sd", orient="h")
+    return fig
 
-    plt.subplots_adjust(left=0.3)
-    plt.show()
 
-
-def plot_dt(dt: BaseDecisionTree, feature_names: [str], class_names: [str]) -> None:
+def plot_dt(dt: BaseDecisionTree, feature_names: list[str], class_names: list[str]) -> None:
     """
     Plots visualization of given decision tree.
 
@@ -38,8 +50,17 @@ def plot_dt(dt: BaseDecisionTree, feature_names: [str], class_names: [str]) -> N
     tree.plot_tree(dt, feature_names=feature_names, class_names=class_names, ax=ax, filled=True, proportion=True)
     plt.show()
 
+def plot_dot_dt(dot_dts: List[str], clf_idx):
+    g = graphviz.Source(dot_dts[clf_idx], format="jpeg")
+    p = g.render("tree")
+    img = io.imread(p)
+    fig = px.imshow(img, binary_format="jpeg")
+    return fig
 
-def plot_alpha_score_curve(train_scores: [float], test_scores: [float], ccp_alphas: [float]) -> None:
+
+
+
+def plot_alpha_score_curve(train_scores: list[float], test_scores: list[float], ccp_alphas: list[float]) -> None:
     """
     Plots the train- vs. test accuracy curve of different alphas.
 

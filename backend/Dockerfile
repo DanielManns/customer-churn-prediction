@@ -29,6 +29,6 @@ COPY --from=builder /venv /venv
 COPY . .
 EXPOSE 8000
 ENTRYPOINT ["python", "src/main.py"]
-CMD ["-m", "0", "-e", "exp_no_subset"]
+CMD ["-m", "1", "-e", "exp_no_subset"]
 
 
