@@ -19,5 +19,5 @@ This project is based on the "Customer Churn Prediction 2020" Kaggle challenge a
 ### Understand Customer Churn
 ![Understand Churn](images/feature_importance_tab.png "Understand what made customers churn")
 
-### Visualize Machine Learning Model
+### Visualize the Machine Learning Model
 ![Visualize ML model](images/visualization_tab.png "Visualize ML model")
