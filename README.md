@@ -13,8 +13,11 @@ You can start the MVP with docker compose. The default ports for the frontend is
 ```docker compose up```
 
 ## Example
+### Predict Customer Churn
 ![Predict Churn](images/predict_tab.png "Predict Customer Churn")
 
+### Understand Customer Churn
 ![Understand Churn](images/feature_importance_tab.png "Understand what made customers churn")
 
+### Visualize Machine Learning Model
 ![Visualize ML model](images/visualization_tab.png "Visualize ML model")
