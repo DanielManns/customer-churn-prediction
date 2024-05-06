@@ -8,9 +8,10 @@ This project is based on the "Customer Churn Prediction 2020" Kaggle challenge a
 2. Install docker compose
 
 ## Usage
-You can start the MVP with docker compose. The default ports for the frontend is 7860 and for the backend 8000.
+1. Check out the exploratory data analysis (eda.ipynb)
+2. You can start the MVP with docker compose. The default ports for the frontend is 7860 and for the backend 8000.
 
-```docker compose up```
+    ```docker compose up```
 
 ## Example
 ### Predict Customer Churn
