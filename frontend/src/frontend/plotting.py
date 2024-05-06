@@ -3,9 +3,7 @@ from sklearn import tree
 from skimage import io
 import pandas as pd
 from sklearn.tree import BaseDecisionTree
-import seaborn as sns
 import plotly.express as px
-import numpy as np
 from typing import List
 import graphviz
 

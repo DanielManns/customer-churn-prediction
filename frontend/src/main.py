@@ -5,21 +5,10 @@ import requests
 import pandas as pd
 import time
 from frontend.plotting import plot_feature_importance, plot_feature_importance
-from frontend.plotting import plot_dt, plot_dot_dt
+from frontend.plotting import plot_dot_dt
 from functools import partial
 from typing import List
 import json
-
-# TODO:
-#  1. Obtain image plot from backend? as bytes object / check if model can be send as bytes object
-#  Solution: Send graphviz dot data via api and only plot here in frontend
-#  -> sklearn.tree export_graphviz
-#  Add tree plot
-#  Add button for type of graph
-#  7. Display clf explanation with plots in third tab
-# fix average plot
-# add tree plot
-
 
 EXP_NAME = "exp_no_subset"
 NUM_CLASSIFIERS = 1
@@ -161,8 +150,4 @@ def run_gui():
         print("Connection could not be established")
 
 if __name__ == "__main__":
-    # add id column in left side somehow
-    # für demo interessanten example datensatz raussuchen
-    # only plot average feature importance of dt with error bars
-    # maybe add details tab for separate views
     run_gui()
