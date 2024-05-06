@@ -3,5 +3,4 @@ frontend/venv/
 /.idea/
 /shelf/
 /workspace.xml
-*.sav
 *__pycache__
