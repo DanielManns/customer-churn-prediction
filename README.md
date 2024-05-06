@@ -10,7 +10,7 @@ This project is based on the "Customer Churn Prediction 2020" Kaggle challenge a
 ## Usage
 1. Check out the exploratory data analysis (eda.ipynb)
 2. Start the project with ```docker compose up```.
-3. Reach the frontend under http://localhost:7860 and the backend under http://localhost:8000/docs.
+3. Access the frontend under http://localhost:7860 and the backend under http://localhost:8000/docs.
 
 ## Example
 ### Predict Customer Churn
