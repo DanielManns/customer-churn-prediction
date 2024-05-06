@@ -86,6 +86,11 @@ def predict_experiment(exp_config: dict, df: pd.DataFrame) -> pd.DataFrame:
 
 
 def explain_experiment(exp_config: dict) -> list[pd.DataFrame]:
+    """
+    Explains given experiment by returning feature importance.
+    :param exp_config: dict - experiment configuration
+    :return: list[pd.DataFrame] - Feature importances
+    """
     classifiers = exp_config["classifiers"]
 
     scaler = load_scaler(exp_config["name"])
@@ -101,7 +106,13 @@ def explain_experiment(exp_config: dict) -> list[pd.DataFrame]:
     return clf_feature_importance
 
 
-def visualize_experiment(exp_config: dict) -> Optional[List[List[str]]]:
+def visualize_experiment(exp_config: dict) -> List[List[str]]:
+    """
+    Visualizes given experiment.
+
+    :param exp_config: dict - experiment configuration
+    :return: Optional[List[List[str]]] - .dot data for visualization.
+    """
     classifiers = exp_config["classifiers"]
     n_splits = exp_config["cross_validation"]["params"]["n_splits"]
     clf_visualizations = []
@@ -111,7 +122,7 @@ def visualize_experiment(exp_config: dict) -> Optional[List[List[str]]]:
         feature_names = scaler.get_feature_names_out()
     except:
         print("Could not load model")
-        return None
+        return [[]]
 
     class_names = ["churn", "no_churn"]
 

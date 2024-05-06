@@ -13,10 +13,6 @@ def warn(*args, **kwargs):
     pass
 
 
-# TODO: Implement Logger
-# TODO: Implement proper results file as pd.DataFrame
-
-
 if __name__ == "__main__":
     args = parse()
 
